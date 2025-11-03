@@ -1,4 +1,4 @@
-#include "HotYoga.h" // <--- Inclui o header correspondente
+#include "models/HotYoga.h" // <--- Inclui o header correspondente
 #include <iostream>
 
 // --- Construtor ---

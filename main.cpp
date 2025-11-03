@@ -12,7 +12,7 @@ int main() {
         // contém o "do-while" e o "switch-case" do seu exemplo.
         meuStudio.run();
 
-    } catch (const std.exception& e) {
+    } catch (const std::exception& e) {
         std::cerr << "Ocorreu um erro fatal no sistema: " << e.what() << std::endl;
         return 1;
     } catch (...) {

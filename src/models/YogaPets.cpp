@@ -1,4 +1,4 @@
-#include "YogaPets.h"
+#include "models/YogaPets.h"
 #include <iostream>
 
 YogaPets::YogaPets(int id, const std::string& horario, int idInstrutor, int limiteAlunos, const std::string& tipoPet)

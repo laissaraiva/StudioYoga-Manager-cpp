@@ -1,4 +1,4 @@
-#include "Praticante.h" // <--- Inclui o header
+#include "models/Praticante.h" // <--- Inclui o header
 
 Praticante::Praticante(int id, const std::string& nome, const std::string& email, int idPlano)
     : Pessoa(id, nome, email), // <--- Chama o construtor da Mãe

@@ -1,8 +1,8 @@
 #ifndef PRATICANTE_H
 #define PRATICANTE_H
 
-#include "Pessoa.h"
-#include "Plano.h"    // <--- Inclui o Plano (Composição)
+#include "models/Pessoa.h"
+#include "models/Plano.h"    // <--- Inclui o Plano (Composição)
 #include <vector>
 
 class Praticante : public Pessoa {

@@ -1,4 +1,4 @@
-#include "Pessoa.h" // <--- Inclui o header
+#include "models/Pessoa.h" // <--- Inclui o header
 
 Pessoa::Pessoa(int id, const std::string& nome, const std::string& email)
     : id(id), nome(nome), email(email) {}

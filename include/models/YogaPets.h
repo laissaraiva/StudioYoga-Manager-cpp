@@ -1,7 +1,7 @@
 #ifndef YOGAPETS_H
 #define YOGAPETS_H
 
-#include "Aula.h"
+#include "models/Aula.h"
 #include <string>
 
 class YogaPets : public Aula {

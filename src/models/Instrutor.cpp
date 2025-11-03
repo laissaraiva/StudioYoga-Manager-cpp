@@ -1,4 +1,4 @@
-#include "Instrutor.h" // <--- Inclui o header
+#include "models/Instrutor.h" // <--- Inclui o header
 
 Instrutor::Instrutor(int id, const std::string& nome, const std::string& email, const std::string& especialidade)
     : Pessoa(id, nome, email), // <--- Chama o construtor da Mãe

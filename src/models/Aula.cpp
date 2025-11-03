@@ -1,4 +1,4 @@
-#include "Aula.h" // <--- Inclui o header correspondente
+#include "models/Aula.h" // <--- Inclui o header correspondente
 #include <iostream>
 #include <algorithm> // Para std::find
 

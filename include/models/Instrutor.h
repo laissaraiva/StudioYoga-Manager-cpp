@@ -1,7 +1,7 @@
 #ifndef INSTRUTOR_H
 #define INSTRUTOR_H
 
-#include "../Pessoa.h"
+#include "models/Pessoa.h"
 #include <vector>
 
 class Instrutor : public Pessoa {

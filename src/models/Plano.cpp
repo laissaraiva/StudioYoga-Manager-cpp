@@ -1,4 +1,4 @@
-#include "Plano.h" // <--- Inclui o header
+#include "models/Plano.h" // <--- Inclui o header
 
 Plano::Plano(int id, const std::string& nome, double preco)
     : id(id), nome(nome), preco(preco) {}
