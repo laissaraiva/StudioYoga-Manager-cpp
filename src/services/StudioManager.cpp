@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include "data/DataManager.h"
+#include <algorithm> // <-- Para encontrar o max_element (para os IDs)
 
 // --- Construtor e Destrutor ---
 
