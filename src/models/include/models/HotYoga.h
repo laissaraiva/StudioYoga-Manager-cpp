@@ -1,7 +1,7 @@
 #ifndef HOTYOGA_H
 #define HOTYOGA_H
 
-#include "Aula.h" // Inclui a Classe Mãe
+#include "Aula.h"
 
 // HotYoga É-UM tipo de Aula
 class HotYoga : public Aula {
