@@ -6,12 +6,15 @@ YogaPets::YogaPets(int id, const std::string& horario, int idInstrutor, int limi
       tipoPetPermitido(tipoPet) {
 }
 
-std::string YogaPets::getTipoPetPermitido() const {
+// --- ATUALIZADO (renomeado) ---
+std::string YogaPets::getTipoPet() const {
     return tipoPetPermitido;
 }
 
-std::string YogaPets::getTipoDeAula() const {
-    return "Yoga com Pets"; // Retorna o nome específico
+// --- ATUALIZADO (renomeado e valor corrigido) ---
+std::string YogaPets::getTipo() const {
+    // Deve retornar a string exata usada no StudioManager
+    return "YogaPets";
 }
 
 void YogaPets::exibirDetalhes() const {

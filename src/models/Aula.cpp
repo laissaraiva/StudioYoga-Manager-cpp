@@ -41,11 +41,11 @@ bool Aula::isPraticanteInscrito(int idPraticante) const {
 
 bool Aula::inscreverPraticante(int idPraticante) {
     if (isLotada()) {
-        std::cout << "Falha: Aula (ID " << id << ") está lotada." << std::endl;
+        std::cout << "Falha: Aula (ID " << id << ") esta lotada." << std::endl;
         return false;
     }
     if (isPraticanteInscrito(idPraticante)) {
-        std::cout << "Info: Praticante (ID " << idPraticante << ") já está inscrito." << std::endl;
+        std::cout << "Info: Praticante (ID " << idPraticante << ") ja esta inscrito." << std::endl;
         return true; // Já está inscrito, não é uma falha
     }
 
@@ -60,8 +60,9 @@ void Aula::cancelarInscricao(int idPraticante) {
 }
 
 void Aula::exibirDetalhes() const {
-    std::cout << "  [Aula ID: " << id << "] - " << getTipoDeAula() << std::endl;
-    std::cout << "  Horário: " << horario << std::endl;
+    // ----- LINHA CORRIGIDA -----
+    std::cout << "  [Aula ID: " << id << "] - " << getTipo() << std::endl;
+    std::cout << "  Horario: " << horario << std::endl;
     std::cout << "  Instrutor ID: " << idInstrutor << std::endl;
     std::cout << "  Vagas: " << idsPraticantesInscritos.size() << " / " << limiteAlunos << std::endl;
 }

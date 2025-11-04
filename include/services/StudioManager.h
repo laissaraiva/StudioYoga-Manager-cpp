@@ -10,6 +10,9 @@
 #include "models/Plano.h"
 #include "models/Aula.h" // A Classe Mãe Abstrata
 
+#include "models/HotYoga.h"
+#include "models/YogaPets.h"
+
 /**
  * @brief Classe principal que gerencia a UI (menu) e os dados em memória.
  * Esta classe substitui a antiga classe "StudioYoga" do arquivo monolítico.
@@ -27,6 +30,19 @@ private:
     int proximoIdPessoa;
     int proximoIdAula;
     int proximoIdPlano;
+
+    // ----- NOVOS MÉTODOS DE PERSISTÊNCIA -----
+    /**
+     * @brief Carrega todos os dados (instrutores, planos, etc.) dos arquivos .dat
+     */
+    void carregarDados();
+
+    /**
+     * @brief Salva todos os dados em memória para os arquivos .dat
+     */
+    void salvarDados();
+    // ----------------------------------------
+
 
     // --- Métodos Auxiliares (privados) ---
     void limparBufferEntrada();
@@ -52,8 +68,15 @@ private:
 
 public:
     // --- Construtor e Destrutor ---
+    /**
+     * @brief Construtor: Chamado ao iniciar. Irá chamar carregarDados().
+     */
     StudioManager();
-    ~StudioManager(); // Destrutor para limpar os ponteiros de Aula*
+
+    /**
+     * @brief Destrutor: Chamado ao fechar. Irá chamar salvarDados() e limpar memória.
+     */
+    ~StudioManager();
 
     // --- Ponto de Entrada do Menu ---
     void run(); // (Era o "menuPrincipal" no seu código antigo)

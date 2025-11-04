@@ -14,7 +14,8 @@ public:
     HotYoga(int id, const std::string& horario, int idInstrutor, int limiteAlunos, int temperatura);
 
     // --- Implementação do Contrato (Obrigatório) ---
-    std::string getTipoDeAula() const override;
+    // --- ATUALIZADO (renomeado) ---
+    std::string getTipo() const override;
 
     // --- Métodos Específicos ---
     int getTemperatura() const;
