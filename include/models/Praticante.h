@@ -2,12 +2,12 @@
 #define PRATICANTE_H
 
 #include "models/Pessoa.h"
-#include "models/Plano.h"    // <--- Inclui o Plano (Composição)
+#include "models/Plano.h"    // para incluir o Plano 
 #include <vector>
 
 class Praticante : public Pessoa {
 private:
-    int idPlano; // ID do plano que o praticante assinou
+    int idPlano; // id  do plano que o praticante assinou
     std::vector<int> idsAulasInscrito;
 
 public:
@@ -20,4 +20,4 @@ public:
     void exibirDetalhes() const override;
 };
 
-#endif // PRATICANTE_H
+#endif 

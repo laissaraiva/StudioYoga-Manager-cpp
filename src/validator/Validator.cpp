@@ -1,14 +1,9 @@
-/*
- * Arquivo: src/validator/Validator.cpp
- * Descrição: Implementação das funções de validação.
- */
+#include "validator/Validator.h" 
+#include <algorithm> 
+#include <cctype>    
 
-#include "validator/Validator.h" // (O CMake vai achar o caminho)
-#include <algorithm> // Para std::find_if
-#include <cctype>    // Para std::isspace (verificar espaço em branco)
-
-// --- Funções Auxiliares (privadas para este arquivo) ---
-// namespace anônimo torna as funções 'trim' visíveis apenas neste .cpp
+// Namespace anônimo para funções auxiliares
+// Funções aqui são visíveis apenas para este arquivo (.cpp)
 namespace {
     // Remove espaços em branco do início da string
     std::string trim_left(const std::string& s) {
@@ -30,24 +25,21 @@ namespace {
     std::string trim(const std::string& s) {
         return trim_left(trim_right(s));
     }
-} // namespace anônimo
+} // Fim do namespace anônimo
 
-// --- Implementação das Funções Públicas ---
-
+// Implementação da função pública 'isStringValida'
 bool Validator::isStringValida(const std::string& input) {
-    // Retorna 'true' se a string, após ser "limpa" (trim), não estiver vazia.
+    // Retorna 'true' se a string, após "limpa" (trim), não estiver vazia.
     return !trim(input).empty();
 }
 
+// Implementação da função pública 'isEmailValido'
 bool Validator::isEmailValido(const std::string& email) {
-    // É uma validação SIMPLES (não perfeita).
-    // Apenas checa se existe um '@' e se existe um '.' depois do '@'.
+    // Validação simples: checa se existe um '@' e um '.' após o '@'.
     
     size_t posArroba = email.find('@');
     size_t posPonto = email.find('.', posArroba);
 
-    // Retorna true se:
-    // 1. O '@' foi encontrado (posArroba != std::string::npos)
-    // 2. O '.' foi encontrado DEPOIS do '@' (posPonto != std::string::npos && posPonto > posArroba)
+    // Retorna true se encontrou '@' e '.' na ordem correta
     return (posArroba != std::string::npos && posPonto != std::string::npos && posPonto > posArroba);
 }

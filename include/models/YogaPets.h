@@ -11,7 +11,7 @@ private:
 public:
     YogaPets(int id, const std::string& horario, int idInstrutor, int limiteAlunos, const std::string& tipoPet);
 
-    // Implementação do Contrato (Obrigatório)
+    // Implementação do Contrato 
     std::string getTipoDeAula() const override;
 
     // Métodos Específicos
@@ -19,4 +19,4 @@ public:
     void exibirDetalhes() const override;
 };
 
-#endif // YOGAPETS_H
+#endif 

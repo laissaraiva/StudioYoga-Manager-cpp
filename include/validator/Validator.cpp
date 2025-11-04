@@ -5,7 +5,7 @@
 
 /*
  * O namespace Validator contém funções utilitárias estáticas
- * para validar dados de entrada (ex: email, nome, CPF, etc.).
+ * para validar dados de entrada.
  */
 namespace Validator {
 
