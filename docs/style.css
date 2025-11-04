@@ -108,3 +108,38 @@ pre {
 code {
     font-family: inherit;
 }
+
+/* --- Estilo dos Botões (Relatório/Código) --- */
+.btn-container {
+    display: flex;
+    justify-content: center; /* Centraliza os botões */
+    gap: 15px; /* Espaço entre os botões */
+    margin-top: 30px; /* Espaço acima dos botões */
+}
+
+.btn {
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 25px; /* Deixa bem arredondado (pill-shape) */
+    font-size: 1em;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
+.btn-dark {
+    background-color: #333; /* Cor de fundo escura, como no exemplo */
+    color: #ffffff; /* Texto branco */
+}
+
+.btn-dark:hover {
+    opacity: 0.8; /* Efeito de hover sutil */
+    color: #ffffff; /* Garante que o texto fique branco */
+    text-decoration: none;
+}
+
+/* Estilo para o ícone dentro do botão */
+.btn i {
+    margin-right: 8px; /* Espaço entre o ícone e o texto */
+}
