@@ -143,3 +143,7 @@ code {
 .btn i {
     margin-right: 8px; /* Espaço entre o ícone e o texto */
 }
+
+#abstract p {
+    text-align: justify;
+}
