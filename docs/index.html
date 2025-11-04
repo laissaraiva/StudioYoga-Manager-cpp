@@ -4,78 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudioYoga Manager (C++)</title>
-    
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f9f9f9;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 25px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        h1, h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #ecf0f1;
-            padding-bottom: 10px;
-        }
-        .btn-github {
-            display: inline-block;
-            padding: 12px 20px;
-            margin-top: 15px;
-            background-color: #24292e; /* Cor do GitHub */
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 6px;
-            transition: background-color 0.2s ease;
-        }
-        .btn-github:hover {
-            background-color: #444;
-        }
-        code {
-            background-color: #eee;
-            padding: 2px 5px;
-            border-radius: 4px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>StudioYoga Manager (Projeto em C++)</h1>
-        
-        <p>Bem-vindo à página do projeto <strong>StudioYoga Manager</strong>. Este é um sistema de console (desktop) desenvolvido em C++ para auxiliar no gerenciamento de um estúdio de yoga.</p>
-        
-        <h2>O que o projeto faz?</h2>
-        <p>O programa permite o cadastramento, consulta e gerenciamento de:</p>
-        <ul>
-            <li>Alunos</li>
-            <li>Professores</li>
-            <li>Aulas e horários</li>
-        </ul>
 
-        <h2>Como usar?</h2>
-        <p>Este projeto <strong>não é um site</strong>, mas sim um <strong>programa em C++</strong>. Para usá-lo, você precisa baixar o código-fonte, compilá-lo e executá-lo no seu computador (via terminal).</p>
-        
-        <p>1. Clone o repositório:</p>
-        <pre><code>git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git</code></pre>
-        
-        <p>2. Navegue até a pasta e compile o código (exemplo com g++):</p>
-        <pre><code>cd StudioYoga-Manager-cpp
+    <nav>
+        <div class="container">
+            <a href="#" class="nav-brand">StudioYoga Manager</a>
+            <a href="https://github.com/laissaraiva/StudioYoga-Manager-cpp">Código no GitHub</a>
+        </div>
+    </nav>
+
+    <header>
+        <div class="container">
+            <h1>StudioYoga Manager (Projeto em C++)</h1>
+            <p>Bem-vindo à página do projeto. Este é um sistema de console (desktop) desenvolvido em C++.</p>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <h2>O que o projeto faz?</h2>
+            <p>O programa permite o cadastramento, consulta e gerenciamento de:</p>
+            <ul>
+                <li>Alunos</li>
+                <li>Professores</li>
+                <li>Aulas e horários</li>
+            </ul>
+        </div>
+    </section>
+    
+    <section>
+        <div class="container">
+            <h2>Como usar?</h2>
+            <p>Este projeto <strong>não é um site</strong>, mas sim um <strong>programa em C++</strong>. Para usá-lo, você precisa baixar o código-fonte...</p>
+            
+            <pre><code>git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git</code></pre>
+            <pre><code>cd StudioYoga-Manager-cpp
 g++ -o yoga_manager *.cpp</code></pre>
+            <pre><code>./yoga_manager</code></pre>
+        </div>
+    </section>
 
-        <p>3. Execute o programa:</p>
-        <pre><code>./yoga_manager</code></pre>
-
-        <a href="https://github.com/laissaraiva/StudioYoga-Manager-cpp" class="btn-github">Ver o Código-Fonte no GitHub</a>
-    </div>
 </body>
 </html>
