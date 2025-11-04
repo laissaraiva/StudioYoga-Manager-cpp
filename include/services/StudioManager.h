@@ -13,6 +13,7 @@
 #include "models/HotYoga.h"
 #include "models/YogaPets.h"
 #include "models/YogaFlow.h"
+#include "DataManager.h" // Inclui o novo gerenciador de persistência
 
 /**
  * @brief Classe principal que gerencia a UI (menu) e os dados em memória.
@@ -21,29 +22,18 @@
 class StudioManager {
 private:
     // --- Armazenamento de Dados (em memória) ---
-    // Usamos ponteiros de Aula para permitir Polimorfismo (HotYoga, YogaPets, etc.)
     std::vector<Aula*> aulas;
     std::vector<Instrutor> instrutores;
     std::vector<Praticante> praticantes;
     std::vector<Plano> planos;
 
+    // --- Gerenciador de Dados ---
+    DataManager dataManager; // Instância do gerenciador de persistência
+
     // --- Contadores de ID ---
     int proximoIdPessoa;
     int proximoIdAula;
     int proximoIdPlano;
-
-    // ----- NOVOS MÉTODOS DE PERSISTÊNCIA -----
-    /**
-     * @brief Carrega todos os dados (instrutores, planos, etc.) dos arquivos .dat
-     */
-    void carregarDados();
-
-    /**
-     * @brief Salva todos os dados em memória para os arquivos .dat
-     */
-    void salvarDados();
-    // ----------------------------------------
-
 
     // --- Métodos Auxiliares (privados) ---
     void limparBufferEntrada();

@@ -1,36 +1,28 @@
 #include "services/StudioManager.h"
-#include "models/HotYoga.h"   // <--- Incluímos as classes filhas
+#include "models/HotYoga.h"
 #include "models/YogaPets.h"
-#include "models/YogaFlow.h"  // <--- 1. NOVO INCLUDE
+#include "models/YogaFlow.h"
 #include <iostream>
 #include <string>
 #include <limits>
-#include <fstream>   // <--- NOVO: Para leitura/escrita de arquivos
-#include <sstream>   // <--- NOVO: Para processar strings de linha
-#include <algorithm> // <--- NOVO: Para std::max
-
-// --- NOVO: Constantes para os nomes dos arquivos ---
-const std::string ARQUIVO_PLANOS = "planOS.dat";
-const std::string ARQUIVO_INSTRUTORES = "instrutores.dat";
-const std::string ARQUIVO_PRATICANTES = "praticantes.dat";
-const std::string ARQUIVO_AULAS = "aulas.dat";
+#include <algorithm> // Necessário para std::max
 
 // --- Construtor e Destrutor (MODIFICADOS) ---
 
 StudioManager::StudioManager()
     : proximoIdPessoa(1), proximoIdAula(100), proximoIdPlano(1000) {
-    // AGORA o construtor carrega os dados
+    // AGORA o construtor delega o carregamento para o DataManager
     std::cout << "Iniciando Studio Manager..." << std::endl;
-    carregarDados();
+    dataManager.carregarDados(planos, instrutores, praticantes, aulas,
+                              proximoIdPessoa, proximoIdAula, proximoIdPlano);
     std::cout << "Sistema pronto." << std::endl;
 }
 
 StudioManager::~StudioManager() {
-    // Destrutor OBRIGATÓRIO para salvar os dados e limpar a memória
     std::cout << "Encerrando Studio Manager..." << std::endl;
 
-    // 1. Salva tudo antes de sair
-    salvarDados();
+    // 1. Salva tudo antes de sair, delegando ao DataManager
+    dataManager.salvarDados(planos, instrutores, praticantes, aulas);
 
     // 2. Deleta cada ponteiro de Aula* que foi criado com 'new'
     std::cout << "Limpando memoria..." << std::endl;
@@ -141,7 +133,7 @@ void StudioManager::cadastrarPlano() {
     std::string nome;
     double preco;
     std::cout << "\n--- Cadastro de Plano ---\n";
-    std::cout << "Nome (Ex: Mensal, Trimestral): ";
+    std::cout << "Nome (Ex: Mensal, Trimestra): ";
     std::getline(std::cin, nome);
     std::cout << "Preco (Ex: 99.90): ";
     std::cin >> preco;
@@ -205,7 +197,6 @@ void StudioManager::cadastrarAula() {
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
-        // --- 2. NOVO CASE ADICIONADO ---
         case 3: { // Yoga Flow
             // Esta aula não pede dados extras, então criamos direto
             novaAula = new YogaFlow(novoId, horario, idInstrutor, limiteAlunos);
@@ -305,226 +296,8 @@ void StudioManager::listarAulas() {
 }
 
 
-// ----- NOVOS MÉTODOS DE PERSISTÊNCIA (IMPLEMENTAÇÃO) -----
-
-void StudioManager::salvarDados() {
-    std::ofstream arquivo;
-    std::cout << "Salvando dados nos arquivos .dat..." << std::endl;
-
-    // 1. Salvar Planos
-    arquivo.open(ARQUIVO_PLANOS);
-    if (arquivo.is_open()) {
-        for (const auto& plano : planos) {
-            // Formato: ID,Nome,Preco
-            arquivo << plano.getId() << "," << plano.getNome() << "," << plano.getPreco() << "\n";
-        }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PLANOS << std::endl;
-    }
-
-    // 2. Salvar Instrutores
-    arquivo.open(ARQUIVO_INSTRUTORES);
-    if (arquivo.is_open()) {
-        for (const auto& instrutor : instrutores) {
-            // Formato: ID,Nome,Email,Especialidade
-            arquivo << instrutor.getId() << "," << instrutor.getNome() << ","
-                    << instrutor.getEmail() << "," << instrutor.getEspecialidade() << "\n";
-        }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_INSTRUTORES << std::endl;
-    }
-
-    // 3. Salvar Praticantes
-    arquivo.open(ARQUIVO_PRATICANTES);
-    if (arquivo.is_open()) {
-        for (const auto& p : praticantes) {
-            // Formato: ID,Nome,Email,ID_Plano
-            arquivo << p.getId() << "," << p.getNome() << ","
-                    << p.getEmail() << "," << p.getIdPlano(); // Assumindo getIdPlano()
-            for (int idAula : p.getAulasInscritas()) { // Assumindo getAulasInscritas()
-                arquivo << "," << idAula;
-            }
-            arquivo << "\n";
-        }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PRATICANTES << std::endl;
-    }
-
-    // 4. Salvar Aulas (Polimorfismo)
-    arquivo.open(ARQUIVO_AULAS);
-    if (arquivo.is_open()) {
-        for (const Aula* aula : aulas) {
-            // Formato: TIPO,ID,Horario,Limite,ID_Instrutor
-            arquivo << aula->getTipo() << "," << aula->getId() << ","
-                    << aula->getHorario() << "," << aula->getLimiteAlunos() << ","
-                    << aula->getIdInstrutor(); // Assumindo getIdInstrutor()
-
-            // Salva dados extras das classes filhas
-            if (aula->getTipo() == "HotYoga") {
-                const HotYoga* hy = dynamic_cast<const HotYoga*>(aula);
-                if (hy) arquivo << "," << hy->getTemperatura();
-            } else if (aula->getTipo() == "YogaPets") {
-                const YogaPets* yp = dynamic_cast<const YogaPets*>(aula);
-                if (yp) arquivo << "," << yp->getTipoPet();
-            }
-            // (Nao e necessario um 'else if' para YogaFlow, pois ela nao tem dados extras)
-
-            for (int idPraticante : aula->getIdsPraticantesInscritos()) { // Assumindo getIdsPraticantesInscritos()
-                arquivo << "," << idPraticante;
-            }
-            arquivo << "\n";
-        }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_AULAS << std::endl;
-    }
-}
-
-void StudioManager::carregarDados() {
-    std::ifstream arquivo;
-    std::string linha;
-    std::cout << "Carregando dados dos arquivos .dat..." << std::endl;
-
-    // --- 1. Carregar Planos ---
-    int maxPlanoId = 0;
-    arquivo.open(ARQUIVO_PLANOS);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string idStr, nome, precoStr;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, precoStr, '\n');
-            try {
-                int id = std::stoi(idStr);
-                double preco = std::stod(precoStr);
-                planos.emplace_back(id, nome, preco);
-                maxPlanoId = std::max(maxPlanoId, id);
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de plano: " << linha << std::endl;
-            }
-        }
-        arquivo.close();
-        proximoIdPlano = maxPlanoId + 1;
-        std::cout << "Carregados " << planos.size() << " planos." << std::endl;
-    }
-
-    // --- 2. Carregar Instrutores ---
-    int maxPessoaId = 0;
-    arquivo.open(ARQUIVO_INSTRUTORES);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string idStr, nome, email, especialidade;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, email, ',');
-            std::getline(ss, especialidade, '\n');
-            try {
-                int id = std::stoi(idStr);
-                instrutores.emplace_back(id, nome, email, especialidade);
-                maxPessoaId = std::max(maxPessoaId, id);
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de instrutor: " << linha << std::endl;
-            }
-        }
-        arquivo.close();
-        std::cout << "Carregados " << instrutores.size() << " instrutores." << std::endl;
-    }
-
-    // --- 3. Carregar Praticantes ---
-    arquivo.open(ARQUIVO_PRATICANTES);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string idStr, nome, email, idPlanoStr, idAulaStr;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, email, ',');
-            std::getline(ss, idPlanoStr, ',');
-            try {
-                int id = std::stoi(idStr);
-                int idPlano = std::stoi(idPlanoStr);
-                praticantes.emplace_back(id, nome, email, idPlano);
-                maxPessoaId = std::max(maxPessoaId, id);
-
-                Praticante* p = findPraticanteById(id);
-                while (std::getline(ss, idAulaStr, ',')) {
-                    p->inscreverEmAula(std::stoi(idAulaStr));
-                }
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de praticante: " << linha << std::endl;
-            }
-        }
-        arquivo.close();
-        std::cout << "Carregados " << praticantes.size() << " praticantes." << std::endl;
-    }
-    proximoIdPessoa = maxPessoaId + 1;
-
-    // --- 4. Carregar Aulas (DEVE SER O ÚLTIMO) ---
-    int maxAulaId = 0;
-    arquivo.open(ARQUIVO_AULAS);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string tipo, idStr, horario, limiteStr, idInstrutorStr, extra, idPraticanteStr;
-
-            std::getline(ss, tipo, ',');
-            std::getline(ss, idStr, ',');
-            std::getline(ss, horario, ',');
-            std::getline(ss, limiteStr, ',');
-            std::getline(ss, idInstrutorStr, ',');
-
-            try {
-                int id = std::stoi(idStr);
-                int limite = std::stoi(limiteStr);
-                int idInstrutor = std::stoi(idInstrutorStr);
-
-                Instrutor* instrutor = findInstrutorById(idInstrutor);
-                if (instrutor == nullptr) {
-                    std::cerr << "Instrutor ID " << idInstrutor << " nao encontrado. Pulando aula " << id << ".\n";
-                    continue;
-                }
-
-                Aula* novaAula = nullptr;
-                if (tipo == "HotYoga") {
-                    std::getline(ss, extra, ','); // Temperatura
-                    novaAula = new HotYoga(id, horario, idInstrutor, limite, std::stoi(extra));
-                } else if (tipo == "YogaPets") {
-                    std::getline(ss, extra, ','); // Tipo de Pet
-                    novaAula = new YogaPets(id, horario, idInstrutor, limite, extra);
-                // --- 3. NOVO ELSE IF ADICIONADO ---
-                } else if (tipo == "YogaFlow") {
-                    // Nao le 'extra', cria direto
-                    novaAula = new YogaFlow(id, horario, idInstrutor, limite);
-                } else {
-                    std::cerr << "Tipo de aula desconhecido: " << tipo << "\n";
-                    continue;
-                }
-
-                while (std::getline(ss, idPraticanteStr, ',')) {
-                    novaAula->inscreverPraticante(std::stoi(idPraticanteStr));
-                }
-
-                aulas.push_back(novaAula);
-                instrutor->adicionarAula(id); // Recria o link no instrutor
-                maxAulaId = std::max(maxAulaId, id);
-
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de aula: " << linha << " (" << e.what() << ")" << std::endl;
-            }
-        }
-        arquivo.close();
-        proximoIdAula = maxAulaId + 1;
-        std::cout << "Carregadas " << aulas.size() << " aulas." << std::endl;
-    }
-}
-
-
 // --- Métodos Auxiliares (Finders e Limpeza) ---
+// (Estas funções permanecem IGUAIS, pois a UI precisa delas)
 
 // --- 4. FUNÇÃO ATUALIZADA ---
 int StudioManager::selecionarTipoAulaMenu() {
