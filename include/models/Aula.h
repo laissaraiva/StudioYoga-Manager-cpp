@@ -34,14 +34,25 @@ public:
     int getVagasDisponiveis() const;
     const std::vector<int>& getIdsPraticantesInscritos() const;
 
+    // ----- MÉTODO ADICIONADO -----
+    /**
+     * @brief Retorna o ID do instrutor responsável pela aula.
+     * Necessário para a função salvarDados() do StudioManager.
+     */
+    int getIdInstrutor() const { return idInstrutor; }
+    // ----------------------------
+
     // --- Métodos Virtuais (O Contrato) ---
 
     /**
-     * @brief Retorna o nome/tipo da aula (ex: "Hot Yoga", "Yoga Normal").
+     * @brief Retorna o nome/tipo da aula (ex: "HotYoga", "YogaPets").
+     * (Este método foi RENOMEADO de 'getTipoDeAula' para 'getTipo' para
+     * compatibilidade com a rotina de salvar/carregar)
+     *
      * Esta é uma "função virtual pura" (= 0), o que torna Aula
      * uma classe abstrata. As classes filhas SÃO OBRIGADAS a implementar isto.
      */
-    virtual std::string getTipoDeAula() const = 0;
+    virtual std::string getTipo() const = 0; // <--- NOME ATUALIZADO
 
     /**
      * @brief Exibe detalhes específicos da aula (virtual para que filhas possam adicionar mais info).

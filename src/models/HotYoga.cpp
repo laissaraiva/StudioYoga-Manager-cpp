@@ -14,8 +14,10 @@ int HotYoga::getTemperatura() const {
 }
 
 // --- Implementação do Contrato (Obrigatório) ---
-std::string HotYoga::getTipoDeAula() const {
-    return "Hot Yoga"; // Retorna o nome específico do tipo
+// --- ATUALIZADO (renomeado e valor corrigido) ---
+std::string HotYoga::getTipo() const {
+    // Deve retornar a string exata usada no StudioManager
+    return "HotYoga";
 }
 
 // --- Sobrescrita do Método ---
@@ -24,5 +26,5 @@ void HotYoga::exibirDetalhes() const {
     Aula::exibirDetalhes();
 
     // 2. Adiciona a informação específica da HotYoga
-    std::cout << "  Temperatura da Sala: " << temperaturaSala << "°C" << std::endl;
+    std::cout << "  Temperatura da Sala: " << temperaturaSala << "(em C)" << std::endl;
 }

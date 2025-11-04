@@ -12,10 +12,13 @@ public:
     YogaPets(int id, const std::string& horario, int idInstrutor, int limiteAlunos, const std::string& tipoPet);
 
     // Implementação do Contrato (Obrigatório)
-    std::string getTipoDeAula() const override;
+    // --- ATUALIZADO (renomeado) ---
+    std::string getTipo() const override;
 
     // Métodos Específicos
-    std::string getTipoPetPermitido() const;
+    // --- ATUALIZADO (renomeado) ---
+    std::string getTipoPet() const;
+
     void exibirDetalhes() const override;
 };
 
