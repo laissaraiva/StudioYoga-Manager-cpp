@@ -12,6 +12,7 @@
 
 #include "models/HotYoga.h"
 #include "models/YogaPets.h"
+#include "models/YogaFlow.h"
 
 /**
  * @brief Classe principal que gerencia a UI (menu) e os dados em memória.
