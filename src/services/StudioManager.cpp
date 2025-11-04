@@ -1,6 +1,7 @@
 #include "services/StudioManager.h"
 #include "models/HotYoga.h"   // <--- Incluímos as classes filhas
 #include "models/YogaPets.h"
+#include "models/YogaFlow.h"  // <--- 1. NOVO INCLUDE
 #include <iostream>
 #include <string>
 #include <limits>
@@ -9,7 +10,7 @@
 #include <algorithm> // <--- NOVO: Para std::max
 
 // --- NOVO: Constantes para os nomes dos arquivos ---
-const std::string ARQUIVO_PLANOS = "planos.dat";
+const std::string ARQUIVO_PLANOS = "planOS.dat";
 const std::string ARQUIVO_INSTRUTORES = "instrutores.dat";
 const std::string ARQUIVO_PRATICANTES = "praticantes.dat";
 const std::string ARQUIVO_AULAS = "aulas.dat";
@@ -48,7 +49,7 @@ void StudioManager::run() {
         std::cout << "1. Cadastrar Praticante\n";
         std::cout << "2. Cadastrar Instrutor\n";
         std::cout << "3. Cadastrar Plano\n";
-        std::cout << "4. Cadastrar Nova Aula (Hot, Pets, Flow)\n";
+        std::cout << "4. Cadastrar Nova Aula (Hot, Pets, Flow)\n"; // (Texto já estava ok)
         std::cout << "------------------------------------------\n";
         std::cout << "5. Matricular Praticante em Aula\n";
         std::cout << "------------------------------------------\n";
@@ -204,6 +205,13 @@ void StudioManager::cadastrarAula() {
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
+        // --- 2. NOVO CASE ADICIONADO ---
+        case 3: { // Yoga Flow
+            // Esta aula não pede dados extras, então criamos direto
+            novaAula = new YogaFlow(novoId, horario, idInstrutor, limiteAlunos);
+            std::cout << "Aula de Yoga Flow cadastrada.\n";
+            break;
+        }
         default:
             std::cout << "Erro: Tipo de aula invalido.\n";
             return;
@@ -322,8 +330,6 @@ void StudioManager::salvarDados() {
             // Formato: ID,Nome,Email,Especialidade
             arquivo << instrutor.getId() << "," << instrutor.getNome() << ","
                     << instrutor.getEmail() << "," << instrutor.getEspecialidade() << "\n";
-            // Nota: Não salvamos as aulas do instrutor aqui,
-            // a aula salvará o ID do instrutor.
         }
         arquivo.close();
     } else {
@@ -337,7 +343,6 @@ void StudioManager::salvarDados() {
             // Formato: ID,Nome,Email,ID_Plano
             arquivo << p.getId() << "," << p.getNome() << ","
                     << p.getEmail() << "," << p.getIdPlano(); // Assumindo getIdPlano()
-            // Salva a lista de IDs de aulas em que está inscrito
             for (int idAula : p.getAulasInscritas()) { // Assumindo getAulasInscritas()
                 arquivo << "," << idAula;
             }
@@ -365,8 +370,8 @@ void StudioManager::salvarDados() {
                 const YogaPets* yp = dynamic_cast<const YogaPets*>(aula);
                 if (yp) arquivo << "," << yp->getTipoPet();
             }
+            // (Nao e necessario um 'else if' para YogaFlow, pois ela nao tem dados extras)
 
-            // Salva a lista de IDs de praticantes inscritos
             for (int idPraticante : aula->getIdsPraticantesInscritos()) { // Assumindo getIdsPraticantesInscritos()
                 arquivo << "," << idPraticante;
             }
@@ -384,7 +389,6 @@ void StudioManager::carregarDados() {
     std::cout << "Carregando dados dos arquivos .dat..." << std::endl;
 
     // --- 1. Carregar Planos ---
-    // (Precisa ser carregado antes dos Praticantes)
     int maxPlanoId = 0;
     arquivo.open(ARQUIVO_PLANOS);
     if (arquivo.is_open()) {
@@ -409,8 +413,7 @@ void StudioManager::carregarDados() {
     }
 
     // --- 2. Carregar Instrutores ---
-    // (Precisa ser carregado antes das Aulas)
-    int maxPessoaId = 0; // Um contador para Pessoas (Praticantes e Instrutores)
+    int maxPessoaId = 0;
     arquivo.open(ARQUIVO_INSTRUTORES);
     if (arquivo.is_open()) {
         while (std::getline(arquivo, linha)) {
@@ -448,7 +451,6 @@ void StudioManager::carregarDados() {
                 praticantes.emplace_back(id, nome, email, idPlano);
                 maxPessoaId = std::max(maxPessoaId, id);
 
-                // Recarrega as aulas inscritas
                 Praticante* p = findPraticanteById(id);
                 while (std::getline(ss, idAulaStr, ',')) {
                     p->inscreverEmAula(std::stoi(idAulaStr));
@@ -460,11 +462,9 @@ void StudioManager::carregarDados() {
         arquivo.close();
         std::cout << "Carregados " << praticantes.size() << " praticantes." << std::endl;
     }
-    // Atualiza o ID máximo de Pessoas
     proximoIdPessoa = maxPessoaId + 1;
 
     // --- 4. Carregar Aulas (DEVE SER O ÚLTIMO) ---
-    // (Depende de Instrutores e Praticantes já estarem na memória)
     int maxAulaId = 0;
     arquivo.open(ARQUIVO_AULAS);
     if (arquivo.is_open()) {
@@ -496,13 +496,15 @@ void StudioManager::carregarDados() {
                 } else if (tipo == "YogaPets") {
                     std::getline(ss, extra, ','); // Tipo de Pet
                     novaAula = new YogaPets(id, horario, idInstrutor, limite, extra);
+                // --- 3. NOVO ELSE IF ADICIONADO ---
+                } else if (tipo == "YogaFlow") {
+                    // Nao le 'extra', cria direto
+                    novaAula = new YogaFlow(id, horario, idInstrutor, limite);
                 } else {
-                    // ----- LINHA CORRIGIDA -----
                     std::cerr << "Tipo de aula desconhecido: " << tipo << "\n";
                     continue;
                 }
 
-                // Recarrega os praticantes inscritos
                 while (std::getline(ss, idPraticanteStr, ',')) {
                     novaAula->inscreverPraticante(std::stoi(idPraticanteStr));
                 }
@@ -523,15 +525,15 @@ void StudioManager::carregarDados() {
 
 
 // --- Métodos Auxiliares (Finders e Limpeza) ---
-// (Estas funções permanecem IGUAIS)
 
+// --- 4. FUNÇÃO ATUALIZADA ---
 int StudioManager::selecionarTipoAulaMenu() {
     int escolha = 0;
     while (true) {
         std::cout << "  Selecione o Tipo de Aula:\n";
         std::cout << "  1. Hot Yoga\n";
         std::cout << "  2. Yoga com Pets\n";
-        // (Adicione '3. Yoga Normal' se criar a classe)
+        std::cout << "  3. Yoga Flow\n"; // <--- ADICIONADO
         std::cout << "  0. Cancelar\n";
         std::cout << "  > ";
         std::cin >> escolha;
@@ -542,7 +544,7 @@ int StudioManager::selecionarTipoAulaMenu() {
             std::cout << "Entrada invalida. Tente novamente.\n";
         } else {
             limparBufferEntrada();
-            if (escolha >= 0 && escolha <= 2) { // Ajuste este '2' se adicionar mais tipos
+            if (escolha >= 0 && escolha <= 3) { // <--- LIMITE ATUALIZADO DE 2 PARA 3
                 return escolha;
             }
             std::cout << "Opção invalida. Tente novamente.\n";
