@@ -45,17 +45,17 @@ O pilar do desenvolvimento foi a Programação Orientada a Objetos (POO). Concei
 
 Herança: Utilizada para criar hierarquias de classes lógicas, como a classe base Pessoa que define atributos comuns para Praticante e Instrutor.
 
-Polimorfismo: Implementado de forma crucial no sistema de aulas, onde a classe base abstrata Aula permite ao sistema gerenciar diferentes tipos de aulas (como HotYoga, YogaPets e Yoga Tradicional) de maneira uniforme.
+<br>Polimorfismo: Implementado de forma crucial no sistema de aulas, onde a classe base abstrata Aula permite ao sistema gerenciar diferentes tipos de aulas (como HotYoga, YogaPets e Yoga Tradicional) de maneira uniforme.
 
 Adotando práticas de "Clean Architecture", o projeto foi  modularizado em camadas de responsabilidade distintas, refletidas na estrutura de pastas:
 
-models/: Contém as definições das entidades centrais (as classes Plano, Aula, Praticante, etc.).
+<br>models/: Contém as definições das entidades centrais (as classes Plano, Aula, Praticante, etc.).
 
-services/: O "cérebro" da aplicação. O StudioManager reside aqui, controlando toda a lógica de negócio, o fluxo do menu e gerenciando os dados em memória.
+<br>services/: O "cérebro" da aplicação. O StudioManager reside aqui, controlando toda a lógica de negócio, o fluxo do menu e gerenciando os dados em memória.
 
-data/: A camada de persistência. O DataManager é um serviço estático responsável por salvar (serializar) e carregar (desserializar) os dados dos vetores em arquivos .txt, garantindo que as informações sobrevivam entre as execuções.
+<br>data/: A camada de persistência. O DataManager é um serviço estático responsável por salvar (serializar) e carregar (desserializar) os dados dos vetores em arquivos .txt, garantindo que as informações sobrevivam entre as execuções.
 
-validator/: Uma camada de serviço utilitário que garante a integridade dos dados de entrada (como nomes, emails e preços) antes que eles sejam processados pela camada de serviço.
+<br>validator/: Uma camada de serviço utilitário que garante a integridade dos dados de entrada (como nomes, emails e preços) antes que eles sejam processados pela camada de serviço.
 
 O resultado é um sistema de gerenciamento funcional, que não apenas implementa um CRUD (Create, Read, Update, Delete) completo para as entidades do estúdio, mas também garante a persistência de dados e a validação de entradas. O projeto utiliza CMake para um processo de compilação (build) moderno e multiplataforma, estando pronto para ser compilado e executado.</p>
         </div>
@@ -64,12 +64,24 @@ O resultado é um sistema de gerenciamento funcional, que não apenas implementa
     <section id="applications">
         <div class="container">
             <h2>Applications (Como usar o programa)</h2>
-            <p>Este projeto <strong>não é um site</strong>, mas sim um <strong>programa em C++</strong>. Para usá-lo, você precisa baixar o código-fonte...</p>
+            <p>Este projeto <strong>não é um site</strong>, mas sim um <strong>programa em C++</strong> que roda no seu terminal. Para usá-lo, você precisa baixar o código-fonte e compilá-lo usando <strong>CMake</strong> (o comando <code>g++</code> simples não funcionará devido à estrutura de pastas).</p>
             
+            <p><strong>1. Clone o repositório:</strong></p>
             <pre><code>git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git</code></pre>
+            
+            <p><strong>2. Entre na pasta e prepare a compilação (Build):</strong></p>
             <pre><code>cd StudioYoga-Manager-cpp
-g++ -o yoga_manager *.cpp</code></pre>
-            <pre><code>./yoga_manager</code></pre>
+mkdir build
+cd build
+cmake ..</code></pre>
+
+            <p><strong>3. Compile o projeto:</strong></p>
+            <pre><code>cmake --build .</code></pre>
+
+            <p><strong>4. Execute o programa:</strong></p>
+            <pre><code>./StudioYogaManager</code></pre>
+
+            <img src="instrucao.webp" id="instrucao">
         </div>
     </section>
 
