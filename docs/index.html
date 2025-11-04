@@ -27,6 +27,7 @@
     <section id="abstract">
         <div class="container">
             <h2>Abstract</h2>
+<<<<<<< HEAD
             
             <p>O <strong>Studio Yoga Manager</strong> é uma solução de software robusta, desenvolvida em C++, projetada para centralizar e simplificar a administração completa de um estúdio de yoga. O sistema oferece uma interface de console (CLI) para gerenciar de forma intuitiva todas as entidades e operações do dia a dia, desde o cadastro de alunos até o agendamento de aulas.</p>
 
@@ -45,6 +46,27 @@
             </ul>
 
             <p>O resultado é um sistema de gerenciamento funcional, que não apenas implementa um <strong>CRUD (Create, Read, Update, Delete)</strong> completo para as entidades do estúdio, mas também garante a <strong>persistência de dados</strong> e a <strong>validação de entradas</strong>. O projeto utiliza <code>CMake</code> para um processo de compilação (build) moderno e multiplataforma, estando pronto para ser compilado e executado.</p>
+=======
+            <p>Este projeto  é uma solução, desenvolvida em C++, projetada para centralizar e simplificar a administração completa de um estúdio de yoga. O sistema oferece uma interface de console (CLI) para gerenciar de forma intuitiva todas as entidades e operações do dia a dia, desde o cadastro de alunos até o agendamento de aulas.
+
+O pilar do desenvolvimento foi a Programação Orientada a Objetos (POO). Conceitos foram aplicados para garantir a integridade do códido, senso eles:
+
+Herança: Utilizada para criar hierarquias de classes lógicas, como a classe base Pessoa que define atributos comuns para Praticante e Instrutor.
+
+Polimorfismo: Implementado de forma crucial no sistema de aulas, onde a classe base abstrata Aula permite ao sistema gerenciar diferentes tipos de aulas (como HotYoga, YogaPets e Yoga Tradicional) de maneira uniforme.
+
+Adotando práticas de "Clean Architecture", o projeto foi  modularizado em camadas de responsabilidade distintas, refletidas na estrutura de pastas:
+
+models/: Contém as definições das entidades centrais (as classes Plano, Aula, Praticante, etc.).
+
+services/: O "cérebro" da aplicação. O StudioManager reside aqui, controlando toda a lógica de negócio, o fluxo do menu e gerenciando os dados em memória.
+
+data/: A camada de persistência. O DataManager é um serviço estático responsável por salvar (serializar) e carregar (desserializar) os dados dos vetores em arquivos .txt, garantindo que as informações sobrevivam entre as execuções.
+
+validator/: Uma camada de serviço utilitário que garante a integridade dos dados de entrada (como nomes, emails e preços) antes que eles sejam processados pela camada de serviço.
+
+O resultado é um sistema de gerenciamento funcional, que não apenas implementa um CRUD (Create, Read, Update, Delete) completo para as entidades do estúdio, mas também garante a persistência de dados e a validação de entradas. O projeto utiliza CMake para um processo de compilação (build) moderno e multiplataforma, estando pronto para ser compilado e executado.</p>
+>>>>>>> 38c9655bcd06981f5dd946c6111bbfb7abbea2d1
         </div>
     </section>
     
