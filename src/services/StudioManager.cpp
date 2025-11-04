@@ -4,23 +4,86 @@
 #include <iostream>
 #include <string>
 #include <limits>
-#include "data/DataManager.h"
-#include <algorithm> // <-- Para encontrar o max_element (para os IDs)
+#include "data/DataManager.h"   // Para salvar e carregar
+#include <algorithm>           // Para std::max_element (para os IDs)
+#include "validator/Validator.h" // Para validar entradas
+
+// Nomes dos arquivos de persistência
+const std::string ARQ_PRATICANTES = "praticantes.txt";
+const std::string ARQ_INSTRUTORES = "instrutores.txt";
+const std::string ARQ_PLANOS = "planos.txt";
+// const std::string ARQ_AULAS = "aulas.txt"; // Salvar aulas polimórficas é complexo
+
+// --- Funções Auxiliares (privadas) para encontrar IDs ---
+
+int encontrarProximoId(const std::vector<Praticante>& v) {
+    if (v.empty()) return 1;
+    auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Praticante& a, const Praticante& b) {
+            return a.getId() < b.getId();
+    });
+    return maxIt->getId() + 1;
+}
+int encontrarProximoId(const std::vector<Instrutor>& v) {
+     if (v.empty()) return 1;
+     auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Instrutor& a, const Instrutor& b) {
+            return a.getId() < b.getId();
+    });
+    return maxIt->getId() + 1;
+}
+int encontrarProximoId(const std::vector<Plano>& v) {
+     if (v.empty()) return 1;
+     auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Plano& a, const Plano& b) {
+            return a.getId() < b.getId();
+    });
+    return maxIt->getId() + 1;
+}
+int encontrarProximoId(const std::vector<Aula*>& v) {
+     if (v.empty()) return 100; // Começa em 100
+     auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Aula* a, const Aula* b) {
+            return a->getId() < b->getId();
+    });
+    return (*maxIt)->getId() + 1;
+}
 
 // --- Construtor e Destrutor ---
 
-StudioManager::StudioManager()
-    : proximoIdPessoa(1), proximoIdAula(100), proximoIdPlano(1000) {
-    // Inicializa com alguns dados de teste (opcional)
+StudioManager::StudioManager() {
     std::cout << "Iniciando Studio Manager..." << std::endl;
-    planos.emplace_back(proximoIdPlano++, "Plano Mensal", 120.00);
-    instrutores.emplace_back(proximoIdPessoa++, "Ana Beatriz", "ana@yoga.com", "Hatha Yoga");
+    
+    // Carrega os dados dos arquivos .txt para os vetores
+    std::cout << "Carregando dados dos arquivos .txt..." << std::endl;
+    this->planos = DataManager::carregarPlanos(ARQ_PLANOS);
+    this->instrutores = DataManager::carregarInstrutores(ARQ_INSTRUTORES);
+    this->praticantes = DataManager::carregarPraticantes(ARQ_PRATICANTES);
+    // this->aulas = DataManager::carregarAulas(ARQ_AULAS); // (Implementação futura)
+
+    // Inicializa os contadores de ID de forma segura
+    this->proximoIdPlano = encontrarProximoId(this->planos);
+    int proxPraticante = encontrarProximoId(this->praticantes);
+    int proxInstrutor = encontrarProximoId(this->instrutores);
+    this->proximoIdPessoa = std::max(proxPraticante, proxInstrutor);
+    
+    this->proximoIdAula = encontrarProximoId(this->aulas);
+    
+    std::cout << planos.size() << " planos, " << instrutores.size() << " instrutores, " << praticantes.size() << " praticantes carregados.\n";
 }
 
 StudioManager::~StudioManager() {
+    std::cout << "Encerrando Studio Manager..." << std::endl;
+    
+    // Salva os dados dos vetores em memória de volta para os arquivos .txt
+    std::cout << "Salvando dados em arquivos .txt..." << std::endl;
+    DataManager::salvarPlanos(this->planos, ARQ_PLANOS);
+    DataManager::salvarInstrutores(this->instrutores, ARQ_INSTRUTORES);
+    DataManager::salvarPraticantes(this->praticantes, ARQ_PRATICANTES);
+    // DataManager::salvarAulas(this->aulas, ARQ_AULAS); // (Implementação futura)
+
     // Destrutor OBRIGATÓRIO para limpar a memória
-    // Deleta cada ponteiro de Aula* que foi criado com 'new'
-    std::cout << "Encerrando Studio Manager e limpando memória..." << std::endl;
+    std::cout << "Limpando ponteiros de aulas..." << std::endl;
     for (Aula* aula : aulas) {
         delete aula;
     }
@@ -90,12 +153,21 @@ void StudioManager::cadastrarPraticante() {
     std::cout << "Email: ";
     std::getline(std::cin, email);
 
+    // Validação
+    if (!Validator::isStringValida(nome)) {
+        std::cout << "Erro: O nome nao pode estar vazio. Cadastro cancelado.\n";
+        return; // Sai da função
+    }
+    if (!Validator::isEmailValido(email)) {
+        std::cout << "Erro: O formato do email e invalido (ex: nome@dominio.com). Cadastro cancelado.\n";
+        return; // Sai da função
+    }
+
     listarPlanos();
     std::cout << "Digite o ID do Plano: ";
     std::cin >> idPlano;
     limparBufferEntrada();
 
-    // Validação (simples)
     if (findPlanoById(idPlano) == nullptr) {
         std::cout << "Erro: Plano não encontrado.\n";
         return;
@@ -116,6 +188,16 @@ void StudioManager::cadastrarInstrutor() {
     std::cout << "Especialidade: ";
     std::getline(std::cin, especialidade);
 
+    // Validação
+    if (!Validator::isStringValida(nome) || !Validator::isStringValida(especialidade)) {
+        std::cout << "Erro: Nome e Especialidade nao podem estar vazios. Cadastro cancelado.\n";
+        return;
+    }
+    if (!Validator::isEmailValido(email)) {
+        std::cout << "Erro: O formato do email e invalido. Cadastro cancelado.\n";
+        return;
+    }
+
     int novoId = proximoIdPessoa++;
     instrutores.emplace_back(novoId, nome, email, especialidade);
     std::cout << "Instrutor '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
@@ -131,6 +213,16 @@ void StudioManager::cadastrarPlano() {
     std::cin >> preco;
     limparBufferEntrada();
 
+    // Validação
+    if (!Validator::isStringValida(nome)) {
+        std::cout << "Erro: O nome do plano nao pode estar vazio. Cadastro cancelado.\n";
+        return;
+    }
+    if (preco <= 0) {
+        std::cout << "Erro: O preco deve ser um valor positivo. Cadastro cancelado.\n";
+        return;
+    }
+
     int novoId = proximoIdPlano++;
     planos.emplace_back(novoId, nome, preco);
     std::cout << "Plano '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
@@ -143,11 +235,9 @@ void StudioManager::cadastrarAula() {
         return;
     }
 
-    // 1. Seleciona o Tipo (agora usando Herança)
     int tipoAula = selecionarTipoAulaMenu();
     if (tipoAula == 0) return; // Usuário cancelou
 
-    // 2. Coleta dados comuns da "Mãe" Aula
     std::string horario;
     int limiteAlunos;
     std::cout << "Horário (Ex: Seg 18:00): ";
@@ -157,7 +247,16 @@ void StudioManager::cadastrarAula() {
     std::cin >> limiteAlunos;
     limparBufferEntrada();
 
-    // 3. Seleciona Instrutor
+    // Validação
+    if (!Validator::isStringValida(horario)) {
+        std::cout << "Erro: O horario nao pode estar vazio. Cadastro cancelado.\n";
+        return;
+    }
+    if (limiteAlunos <= 0) {
+        std::cout << "Erro: O limite de alunos deve ser positivo. Cadastro cancelado.\n";
+        return;
+    }
+
     listarInstrutores();
     std::cout << "Digite o ID do Instrutor: ";
     int idInstrutor;
@@ -170,7 +269,6 @@ void StudioManager::cadastrarAula() {
         return;
     }
 
-    // 4. Cria a Aula específica (POLIMORFISMO)
     Aula* novaAula = nullptr;
     int novoId = proximoIdAula++;
 
@@ -187,16 +285,20 @@ void StudioManager::cadastrarAula() {
             std::cout << "Tipo de Pet Permitido (Ex: Gatos, Cachorros dócil): ";
             std::string tipoPet;
             std::getline(std::cin, tipoPet);
+             if (!Validator::isStringValida(tipoPet)) {
+                std::cout << "Erro: O tipo de pet nao pode estar vazio. Cadastro cancelado.\n";
+                proximoIdAula--; // Reverte o incremento do ID
+                return;
+            }
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
-        // (Adicione 'case 3:' para uma 'YogaNormal.h' se você a criar)
         default:
             std::cout << "Erro: Tipo de aula inválido.\n";
+            proximoIdAula--; // Reverte o incremento do ID
             return;
     }
 
-    // 5. Salva a aula (o ponteiro) no vetor
     aulas.push_back(novaAula);
     instrutor->adicionarAula(novoId); // Linka a aula ao instrutor
 
@@ -212,7 +314,6 @@ void StudioManager::matricularPraticanteEmAula() {
         std::cout << "Erro: Nenhuma aula cadastrada.\n"; return;
     }
 
-    // 1. Selecionar Praticante
     listarPraticantes();
     std::cout << "Digite o ID do Praticante: ";
     int idPraticante;
@@ -223,7 +324,6 @@ void StudioManager::matricularPraticanteEmAula() {
         std::cout << "Erro: Praticante não encontrado.\n"; return;
     }
 
-    // 2. Selecionar Aula
     listarAulas();
     std::cout << "Digite o ID da Aula: ";
     int idAula;
@@ -234,7 +334,6 @@ void StudioManager::matricularPraticanteEmAula() {
         std::cout << "Erro: Aula não encontrada.\n"; return;
     }
 
-    // 3. Realizar a Matrícula (usando a lógica de negócios da Aula)
     if (aula->inscreverPraticante(praticante->getId())) {
         praticante->inscreverEmAula(aula->getId()); // Link bidirecional
         std::cout << "Matrícula de '" << praticante->getNome() << "' realizada com sucesso!\n";
@@ -281,9 +380,6 @@ void StudioManager::listarAulas() {
         std::cout << "Nenhuma aula cadastrada.\n"; return;
     }
     for (const Aula* aulaPtr : aulas) {
-        // POLIMORFISMO em ação:
-        // O C++ chama automaticamente o 'exibirDetalhes'
-        // da classe filha correta (HotYoga, YogaPets, etc.)
         aulaPtr->exibirDetalhes();
         std::cout << "---------------------------------\n";
     }
