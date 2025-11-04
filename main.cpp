@@ -1,88 +1,24 @@
-<nav class="golden-navbar">
-        <div class="container">
-            <a href="#abstract">Abstract</a>
-            <a href="#applications">Applications</a>
-            <a href="#results">Resultados</a>
-            <a href="#full-video">Full Video</a>
-        </div>
-    </nav>
+#include <iostream>
+#include <stdexcept>
+#include "services/StudioManager.h"
 
-    <header>
-        <div class="container">
-            <img src="yoga_logo.png" alt="Logo Studio Yoga" class="yoga-logo">
-            <h1><strong>Studio Yoga Manager: Desenvolvimento de um Sistema de Informação com conceitos de POO.</strong></h1>
-            <p>Bem-vindo(a) à página do projeto do Grupo 4 da disciplina de Estruturas de Dados Orientadas a Objetos!</p>
+int main() {
+    try {
+        // 1. Cria o objeto principal que gerencia tudo
+        StudioManager meuStudio;
 
-            <div class="btn-container">
-                <a href="relatorio.pdf" class="btn btn-dark" target="_blank">
-                    <i class="fas fa-file-alt"></i> Relatório
-                </a>
-                <a href="https://github.com/laissaraiva/StudioYoga-Manager-cpp" class="btn btn-dark" target="_blank">
-                    <i class="fab fa-github"></i> Código
-                </a>
-            </div>
-        </div>
-    </header>
+        // 2. Chama o loop principal do menu (o "run")
+        // A função "run()" lá dentro do StudioManager é que
+        // contém o "do-while" e o "switch-case" do seu exemplo.
+        meuStudio.run();
 
-    <section id="abstract">
-        <div class="container">
-            <h2>Abstract</h2>
-            
-            <p>O <strong>Studio Yoga Manager</strong> é uma solução de software robusta, desenvolvida em C++, projetada para centralizar e simplificar a administração completa de um estúdio de yoga. O sistema oferece uma interface de console (CLI) para gerenciar de forma intuitiva todas as entidades e operações do dia a dia, desde o cadastro de alunos até o agendamento de aulas.</p>
+    } catch (const std::exception& e) {
+        std::cerr << "Ocorreu um erro fatal no sistema: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Ocorreu um erro desconhecido e fatal." << std::endl;
+        return 1;
+    }
 
-            <p>O pilar do desenvolvimento foi a <strong>Programação Orientada a Objetos (POO)</strong>. Conceitos avançados foram aplicados para garantir um código limpo, modular e extensível:</p>
-            <ul>
-                <li><strong>Herança:</strong> Utilizada para criar hierarquias de classes lógicas, como a classe base <code>Pessoa</code> que define atributos comuns para <code>Praticante</code> e <code>Instrutor</code>.</li>
-                <li><strong>Polimorfismo:</strong> Implementado de forma crucial no sistema de aulas, onde a classe base abstrata <code>Aula</code> permite ao sistema gerenciar diferentes tipos de aulas (como <code>HotYoga</code> e <code>YogaPets</code>) de maneira uniforme.</li>
-            </ul>
-
-            <p>Adotando práticas de <strong>Clean Architecture</strong>, o projeto foi rigorosamente modularizado em camadas de responsabilidade distintas, refletidas na estrutura de pastas:</p>
-            <ul>
-                <li><code>models/</code>: Contém as definições das entidades centrais (as classes <code>Plano</code>, <code>Aula</code>, <code>Praticante</code>, etc.).</li>
-                <li><code>services/</code>: O "cérebro" da aplicação. O <code>StudioManager</code> reside aqui, controlando toda a lógica de negócio, o fluxo do menu e gerenciando os dados em memória.</li>
-                <li><code>data/</code>: A camada de persistência. O <code>DataManager</code> é um serviço estático responsável por salvar (serializar) e carregar (desserializar) os dados dos vetores em arquivos <code>.txt</code>, garantindo que as informações sobrevivam entre as execuções.</li>
-                <li><code>validator/</code>: Uma camada de serviço utilitário que garante a integridade dos dados de entrada (como nomes, emails e preços) antes que eles sejam processados pela camada de serviço.</li>
-            </ul>
-
-            <p>O resultado é um sistema de gerenciamento funcional, que não apenas implementa um <strong>CRUD (Create, Read, Update, Delete)</strong> completo para as entidades do estúdio, mas também garante a <strong>persistência de dados</strong> e a <strong>validação de entradas</strong>. O projeto utiliza <code>CMake</code> para um processo de compilação (build) moderno e multiplataforma, estando pronto para ser compilado e executado.</p>
-        </div>
-    </section>
-    
-    <section id="applications">
-        <div class="container">
-            <h2>Applications (Como usar o programa)</h2>
-            <p>Este projeto <strong>não é um site</strong>, mas sim um <strong>programa em C++</strong> que roda no seu terminal. Para usá-lo, você precisa baixar o código-fonte e compilá-lo usando <strong>CMake</strong> (o comando <code>g++</code> simples não funcionará devido à estrutura de pastas).</p>
-            
-            <p><strong>1. Clone o repositório:</strong></p>
-            <pre><code>git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git</code></pre>
-            
-            <p><strong>2. Entre na pasta e prepare a compilação (Build):</strong></p>
-            <pre><code>cd StudioYoga-Manager-cpp
-mkdir build
-cd build
-cmake ..</code></pre>
-
-            <p><strong>3. Compile o projeto:</strong></p>
-            <pre><code>cmake --build .</code></pre>
-
-            <p><strong>4. Execute o programa:</strong></p>
-            <pre><code>./StudioYogaManager</code></pre>
-        </div>
-    </section>
-
-    <section id="results">
-        <div class="container">
-            <h2>Resultados</h2>
-            <p>Aqui você pode descrever os resultados alcançados pelo sistema, suas funcionalidades principais e talvez alguns prints das telas do console.</p>
-            </div>
-    </section>
-
-    <section id="full-video">
-        <div class="container">
-            <h2>Full Video</h2>
-            <p>Insira aqui o link ou um embed para um vídeo completo demonstrando o sistema.</p>
-            </div>
-    </section>
-
-</body>
-</html>
+    return 0; // O programa termina quando o usuário sai do menu
+}
