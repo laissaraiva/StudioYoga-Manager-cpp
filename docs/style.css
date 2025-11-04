@@ -1,82 +1,109 @@
 body {
-    background-color: #1a1a1a; /* Fundo escuro */
-    color: #e0e0e0;           /* Texto claro */
-    font-family: 'Inter', sans-serif; /* Fonte similar à do site */
+    background-color: #ffffff; /* Fundo branco */
+    color: #333333;           /* Texto escuro (cinza escuro) */
+    font-family: 'Inter', sans-serif; /* Fonte */
     margin: 0;
     line-height: 1.6;
 }
 
 /* --- Layout do Contêiner --- */
 .container {
-    max-width: 800px;  /* Define a largura máxima do conteúdo */
-    margin: 0 auto;    /* Centraliza o contêiner */
-    padding: 0 20px;   /* Adiciona espaçamento lateral */
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-/* --- Estilo da Barra de Navegação --- */
-nav {
-    background-color: #222;
-    border-bottom: 1px solid #444;
+/* --- Estilo da Navbar Dourada --- */
+.golden-navbar {
+    background-color: #DAA520; /* Cor dourada */
     padding: 15px 0;
-    position: sticky; /* Faz a barra ficar fixa no topo */
+    position: sticky;
     top: 0;
     z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-nav .container {
-    display: flex; /* Alinha os links lado a lado */
-    justify-content: space-between; /* Espaça os links */
+.golden-navbar .container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
 }
 
-nav a {
-    color: #eee;
+.golden-navbar a {
+    color: #333; /* Texto escuro na navbar */
     text-decoration: none;
     font-weight: bold;
     font-size: 1.1em;
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.golden-navbar a:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Fundo escuro sutil ao passar o mouse */
+    color: #000; /* Texto preto no hover */
+    text-decoration: none;
 }
 
 /* --- Estilo do Cabeçalho (Hero) --- */
 header {
-    padding: 60px 0;
+    padding: 60px 0 30px;
     text-align: center;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid #eeeeee; /* Borda clara */
 }
 
 header h1 {
-    font-size: 2.5em;
-    color: #ffffff;
-    margin-bottom: 10px;
+    font-size: 2.2em;
+    color: #222222; /* Título principal escuro */
+    margin-bottom: 20px;
+}
+
+/* Estilo para a imagem do logo */
+.yoga-logo {
+    max-width: 150px;
+    height: auto;
+    display: block;
+    margin: 0px auto 30px auto;
+    /* Remove o filtro de sombra, que era para fundos escuros */
 }
 
 /* --- Estilo das Seções de Conteúdo --- */
 section {
-    padding: 40px 0; /* Espaçamento entre as seções */
+    padding: 40px 0;
+    border-bottom: 1px solid #eeeeee; /* Linha divisória clara */
+}
+
+section:last-of-type {
+    border-bottom: none;
 }
 
 section h2 {
     font-size: 1.8em;
-    color: #ffffff;
-    border-bottom: 2px solid #555;
+    color: #333333; /* Títulos das seções escuros */
+    border-bottom: 2px solid #DAA520; /* Linha dourada */
     padding-bottom: 5px;
+    margin-bottom: 20px;
 }
 
-/* --- Estilo dos Links --- */
+/* --- Estilo dos Links Comuns --- */
 a {
-    color: #8ab4f8; /* Cor azulada para links */
+    color: #0056b3; /* Cor azul padrão para links */
     text-decoration: none;
 }
 
 a:hover {
-    text-decoration: underline; /* Sublinhado ao passar o mouse */
+    text-decoration: underline;
 }
 
 /* --- Estilo dos Blocos de Código --- */
 pre {
-    background-color: #2f2f2f; /* Fundo mais claro para código */
+    background-color: #f4f4f4; /* Fundo cinza claro para código */
+    color: #333; /* Texto escuro para código */
     padding: 15px;
     border-radius: 5px;
-    overflow-x: auto; /* Permite rolagem horizontal se o código for longo */
+    overflow-x: auto;
     font-family: 'Courier New', Courier, monospace;
+    border: 1px solid #ddd; /* Borda sutil */
 }
 
 code {
