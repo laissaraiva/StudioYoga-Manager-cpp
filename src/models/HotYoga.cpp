@@ -1,28 +1,29 @@
-#include "models/HotYoga.h" // <--- Inclui o header correspondente
+#include "models/HotYoga.h"
 #include <iostream>
 
-// --- Construtor ---
-// Chama o construtor da Mãe (Aula) e inicializa o seu próprio atributo (temperaturaSala)
+// Construtor da classe HotYoga.
+// Chama o construtor da classe base (Aula) e inicializa o atributo específico 'temperaturaSala'.
 HotYoga::HotYoga(int id, const std::string& horario, int idInstrutor, int limiteAlunos, int temperatura)
-    : Aula(id, horario, idInstrutor, limiteAlunos), // <--- Chama o construtor da Mãe
+    : Aula(id, horario, idInstrutor, limiteAlunos),
       temperaturaSala(temperatura) {
+    // O corpo do construtor pode ficar vazio, pois a inicialização é feita na lista.
 }
 
-// --- Getters Específicos ---
+// Retorna a temperatura específica desta sala de Hot Yoga.
 int HotYoga::getTemperatura() const {
     return temperaturaSala;
 }
 
-// --- Implementação do Contrato (Obrigatório) ---
+// Implementa o método virtual da classe base para retornar o tipo da aula.
 std::string HotYoga::getTipoDeAula() const {
     return "Hot Yoga"; // Retorna o nome específico do tipo
 }
 
-// --- Sobrescrita do Método ---
+// Sobrescreve o método 'exibirDetalhes' para incluir informações da Hot Yoga.
 void HotYoga::exibirDetalhes() const {
-    // 1. Chama o método da Mãe para imprimir as infos comuns
+    // Chama o método da classe base (Aula) para imprimir os detalhes comuns.
     Aula::exibirDetalhes();
 
-    // 2. Adiciona a informação específica da HotYoga
+    // Adiciona a informação específica desta classe filha (temperatura).
     std::cout << "  Temperatura da Sala: " << temperaturaSala << "°C" << std::endl;
 }

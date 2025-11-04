@@ -14,17 +14,17 @@ public:
     Pessoa(int id, const std::string& nome, const std::string& email);
     virtual ~Pessoa(); // Destrutor virtual para herança
 
-    // Getters comuns
+    // Getters 
     int getId() const;
     std::string getNome() const;
     std::string getEmail() const;
 
-    // Setters (exemplo)
+    // Setters 
     void setNome(const std::string& novoNome);
     void setEmail(const std::string& novoEmail);
 
-    // Método virtual puro -> torna Pessoa uma classe Abstrata
+    // Método virtual puro,  torna Pessoa uma classe Abstrata
     virtual void exibirDetalhes() const = 0;
 };
 
-#endif // PESSOA_H
+#endif 

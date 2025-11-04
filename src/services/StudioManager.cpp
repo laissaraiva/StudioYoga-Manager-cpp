@@ -1,21 +1,21 @@
 #include "services/StudioManager.h"
-#include "models/HotYoga.h"   // <--- Incluímos as classes filhas
-#include "models/YogaPets.h"
+#include "models/HotYoga.h"   // Inclui a classe filha HotYoga
+#include "models/YogaPets.h"  // Inclui a classe filha YogaPets
 #include <iostream>
 #include <string>
 #include <limits>
-#include "data/DataManager.h"   // Para salvar e carregar
-#include <algorithm>           // Para std::max_element (para os IDs)
-#include "validator/Validator.h" // Para validar entradas
+#include "data/DataManager.h"   // Inclui o serviço de persistência
+#include <algorithm>           // Para std::max_element (cálculo de IDs)
+#include "validator/Validator.h" // Inclui o serviço de validação
 
-// Nomes dos arquivos de persistência
+// Nomes dos arquivos de persistência (constantes)
 const std::string ARQ_PRATICANTES = "praticantes.txt";
 const std::string ARQ_INSTRUTORES = "instrutores.txt";
 const std::string ARQ_PLANOS = "planos.txt";
-// const std::string ARQ_AULAS = "aulas.txt"; // Salvar aulas polimórficas é complexo
+// const std::string ARQ_AULAS = "aulas.txt"; // Salvar aulas é mais complexo
 
 // --- Funções Auxiliares (privadas) para encontrar IDs ---
-
+// Encontra o maior ID em um vetor de Praticantes e retorna o próximo ID
 int encontrarProximoId(const std::vector<Praticante>& v) {
     if (v.empty()) return 1;
     auto maxIt = std::max_element(v.begin(), v.end(), 
@@ -24,6 +24,7 @@ int encontrarProximoId(const std::vector<Praticante>& v) {
     });
     return maxIt->getId() + 1;
 }
+// Encontra o maior ID em um vetor de Instrutores e retorna o próximo ID
 int encontrarProximoId(const std::vector<Instrutor>& v) {
      if (v.empty()) return 1;
      auto maxIt = std::max_element(v.begin(), v.end(), 
@@ -32,6 +33,7 @@ int encontrarProximoId(const std::vector<Instrutor>& v) {
     });
     return maxIt->getId() + 1;
 }
+// Encontra o maior ID em um vetor de Planos e retorna o próximo ID
 int encontrarProximoId(const std::vector<Plano>& v) {
      if (v.empty()) return 1;
      auto maxIt = std::max_element(v.begin(), v.end(), 
@@ -40,8 +42,9 @@ int encontrarProximoId(const std::vector<Plano>& v) {
     });
     return maxIt->getId() + 1;
 }
+// Encontra o maior ID em um vetor de Aulas (ponteiros) e retorna o próximo ID
 int encontrarProximoId(const std::vector<Aula*>& v) {
-     if (v.empty()) return 100; // Começa em 100
+     if (v.empty()) return 100; // Define 100 como o ID inicial para aulas
      auto maxIt = std::max_element(v.begin(), v.end(), 
         [](const Aula* a, const Aula* b) {
             return a->getId() < b->getId();
@@ -54,19 +57,18 @@ int encontrarProximoId(const std::vector<Aula*>& v) {
 StudioManager::StudioManager() {
     std::cout << "Iniciando Studio Manager..." << std::endl;
     
-    // Carrega os dados dos arquivos .txt para os vetores
+    // Carrega os dados dos arquivos .txt para os vetores em memória
     std::cout << "Carregando dados dos arquivos .txt..." << std::endl;
     this->planos = DataManager::carregarPlanos(ARQ_PLANOS);
     this->instrutores = DataManager::carregarInstrutores(ARQ_INSTRUTORES);
     this->praticantes = DataManager::carregarPraticantes(ARQ_PRATICANTES);
-    // this->aulas = DataManager::carregarAulas(ARQ_AULAS); // (Implementação futura)
+    // this->aulas = DataManager::carregarAulas(ARQ_AULAS); // Implementação futura
 
-    // Inicializa os contadores de ID de forma segura
+    // Inicializa os contadores de ID de forma segura, com base nos dados carregados
     this->proximoIdPlano = encontrarProximoId(this->planos);
     int proxPraticante = encontrarProximoId(this->praticantes);
     int proxInstrutor = encontrarProximoId(this->instrutores);
-    this->proximoIdPessoa = std::max(proxPraticante, proxInstrutor);
-    
+    this->proximoIdPessoa = std::max(proxPraticante, proxInstrutor); // Usa o maior ID entre pessoas
     this->proximoIdAula = encontrarProximoId(this->aulas);
     
     std::cout << planos.size() << " planos, " << instrutores.size() << " instrutores, " << praticantes.size() << " praticantes carregados.\n";
@@ -80,12 +82,12 @@ StudioManager::~StudioManager() {
     DataManager::salvarPlanos(this->planos, ARQ_PLANOS);
     DataManager::salvarInstrutores(this->instrutores, ARQ_INSTRUTORES);
     DataManager::salvarPraticantes(this->praticantes, ARQ_PRATICANTES);
-    // DataManager::salvarAulas(this->aulas, ARQ_AULAS); // (Implementação futura)
+    // DataManager::salvarAulas(this->aulas, ARQ_AULAS); // Implementação futura
 
-    // Destrutor OBRIGATÓRIO para limpar a memória
+    // Destrutor OBRIGATÓRIO para limpar a memória dos ponteiros
     std::cout << "Limpando ponteiros de aulas..." << std::endl;
     for (Aula* aula : aulas) {
-        delete aula;
+        delete aula; // Libera a memória alocada com 'new' para cada aula
     }
 }
 
@@ -93,7 +95,7 @@ StudioManager::~StudioManager() {
 
 void StudioManager::run() {
     int escolha = -1;
-    do {
+    do { // Loop principal do menu
         std::cout << "\n========= YOGA STUDIO MANAGEMENT (v2.0) =========\n";
         std::cout << "1. Cadastrar Praticante\n";
         std::cout << "2. Cadastrar Instrutor\n";
@@ -111,16 +113,16 @@ void StudioManager::run() {
         std::cout << "==========================================\n";
         std::cout << "Digite sua escolha: ";
 
-        if (!(std::cin >> escolha)) {
+        if (!(std::cin >> escolha)) { // Verifica se a entrada é um número
             std::cout << "Opção inválida. Por favor, digite um número.\n";
-            std::cin.clear();
-            limparBufferEntrada();
-            continue;
+            std::cin.clear(); // Limpa o estado de erro do cin
+            limparBufferEntrada(); // Limpa o buffer
+            continue; // Volta ao início do loop
         }
 
         limparBufferEntrada(); // Limpa o '\n' deixado pelo cin
 
-        try {
+        try { // Bloco try-catch para capturar exceções
             switch (escolha) {
                 case 1: cadastrarPraticante(); break;
                 case 2: cadastrarInstrutor(); break;
@@ -138,7 +140,7 @@ void StudioManager::run() {
             std::cerr << "ERRO: " << e.what() << std::endl;
         }
 
-    } while (escolha != 0);
+    } while (escolha != 0); // Repete até o usuário escolher 0
 }
 
 
@@ -153,7 +155,7 @@ void StudioManager::cadastrarPraticante() {
     std::cout << "Email: ";
     std::getline(std::cin, email);
 
-    // Validação
+    // Validação da entrada usando o Validator
     if (!Validator::isStringValida(nome)) {
         std::cout << "Erro: O nome nao pode estar vazio. Cadastro cancelado.\n";
         return; // Sai da função
@@ -163,18 +165,19 @@ void StudioManager::cadastrarPraticante() {
         return; // Sai da função
     }
 
-    listarPlanos();
+    listarPlanos(); // Mostra os planos disponíveis
     std::cout << "Digite o ID do Plano: ";
     std::cin >> idPlano;
     limparBufferEntrada();
 
+    // Validação da lógica de negócio
     if (findPlanoById(idPlano) == nullptr) {
         std::cout << "Erro: Plano não encontrado.\n";
         return;
     }
 
-    int novoId = proximoIdPessoa++;
-    praticantes.emplace_back(novoId, nome, email, idPlano);
+    int novoId = proximoIdPessoa++; // Pega o próximo ID disponível
+    praticantes.emplace_back(novoId, nome, email, idPlano); // Cria e adiciona o praticante ao vetor
     std::cout << "Praticante '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
 }
 
@@ -188,7 +191,7 @@ void StudioManager::cadastrarInstrutor() {
     std::cout << "Especialidade: ";
     std::getline(std::cin, especialidade);
 
-    // Validação
+    // Validação da entrada
     if (!Validator::isStringValida(nome) || !Validator::isStringValida(especialidade)) {
         std::cout << "Erro: Nome e Especialidade nao podem estar vazios. Cadastro cancelado.\n";
         return;
@@ -199,7 +202,7 @@ void StudioManager::cadastrarInstrutor() {
     }
 
     int novoId = proximoIdPessoa++;
-    instrutores.emplace_back(novoId, nome, email, especialidade);
+    instrutores.emplace_back(novoId, nome, email, especialidade); // Cria e adiciona o instrutor
     std::cout << "Instrutor '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
 }
 
@@ -213,7 +216,7 @@ void StudioManager::cadastrarPlano() {
     std::cin >> preco;
     limparBufferEntrada();
 
-    // Validação
+    // Validação da entrada
     if (!Validator::isStringValida(nome)) {
         std::cout << "Erro: O nome do plano nao pode estar vazio. Cadastro cancelado.\n";
         return;
@@ -224,7 +227,7 @@ void StudioManager::cadastrarPlano() {
     }
 
     int novoId = proximoIdPlano++;
-    planos.emplace_back(novoId, nome, preco);
+    planos.emplace_back(novoId, nome, preco); // Cria e adiciona o plano
     std::cout << "Plano '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
 }
 
@@ -235,19 +238,20 @@ void StudioManager::cadastrarAula() {
         return;
     }
 
+    //Seleciona o Tipo (Polimorfismo)
     int tipoAula = selecionarTipoAulaMenu();
     if (tipoAula == 0) return; // Usuário cancelou
 
+    //  Coleta dados comuns da "Mãe" Aula
     std::string horario;
     int limiteAlunos;
     std::cout << "Horário (Ex: Seg 18:00): ";
     std::getline(std::cin, horario);
-
     std::cout << "Limite de Alunos: ";
     std::cin >> limiteAlunos;
     limparBufferEntrada();
 
-    // Validação
+    // Validação da entrada
     if (!Validator::isStringValida(horario)) {
         std::cout << "Erro: O horario nao pode estar vazio. Cadastro cancelado.\n";
         return;
@@ -257,19 +261,21 @@ void StudioManager::cadastrarAula() {
         return;
     }
 
+    // Seleciona Instrutor
     listarInstrutores();
     std::cout << "Digite o ID do Instrutor: ";
     int idInstrutor;
     std::cin >> idInstrutor;
     limparBufferEntrada();
 
-    Instrutor* instrutor = findInstrutorById(idInstrutor);
+    Instrutor* instrutor = findInstrutorById(idInstrutor); // Busca o instrutor
     if (instrutor == nullptr) {
         std::cout << "Erro: Instrutor não encontrado.\n";
         return;
     }
 
-    Aula* novaAula = nullptr;
+    // Cria a Aula específica (POLIMORFISMO)
+    Aula* novaAula = nullptr; // Ponteiro da classe base
     int novoId = proximoIdAula++;
 
     switch (tipoAula) {
@@ -278,6 +284,7 @@ void StudioManager::cadastrarAula() {
             int temp;
             std::cin >> temp;
             limparBufferEntrada();
+            // Cria um objeto HotYoga, mas armazena em um ponteiro Aula*
             novaAula = new HotYoga(novoId, horario, idInstrutor, limiteAlunos, temp);
             break;
         }
@@ -290,6 +297,7 @@ void StudioManager::cadastrarAula() {
                 proximoIdAula--; // Reverte o incremento do ID
                 return;
             }
+            // Cria um objeto YogaPets, mas armazena em um ponteiro Aula*
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
@@ -299,8 +307,9 @@ void StudioManager::cadastrarAula() {
             return;
     }
 
+    //  Salva a aula (o ponteiro) no vetor
     aulas.push_back(novaAula);
-    instrutor->adicionarAula(novoId); // Linka a aula ao instrutor
+    instrutor->adicionarAula(novoId); // Linka a aula ao instrutor (lógica de negócio)
 
     std::cout << "Aula (ID: " << novoId << ") cadastrada com sucesso!\n";
 }
@@ -314,26 +323,29 @@ void StudioManager::matricularPraticanteEmAula() {
         std::cout << "Erro: Nenhuma aula cadastrada.\n"; return;
     }
 
+    //Selecionar Praticante
     listarPraticantes();
     std::cout << "Digite o ID do Praticante: ";
     int idPraticante;
     std::cin >> idPraticante;
     limparBufferEntrada();
-    Praticante* praticante = findPraticanteById(idPraticante);
+    Praticante* praticante = findPraticanteById(idPraticante); // Busca o praticante
     if (praticante == nullptr) {
         std::cout << "Erro: Praticante não encontrado.\n"; return;
     }
 
+    // Selecionar Aula
     listarAulas();
     std::cout << "Digite o ID da Aula: ";
     int idAula;
     std::cin >> idAula;
     limparBufferEntrada();
-    Aula* aula = findAulaById(idAula);
+    Aula* aula = findAulaById(idAula); // Busca a aula
     if (aula == nullptr) {
         std::cout << "Erro: Aula não encontrada.\n"; return;
     }
 
+    //  Realizar a Matrícula 
     if (aula->inscreverPraticante(praticante->getId())) {
         praticante->inscreverEmAula(aula->getId()); // Link bidirecional
         std::cout << "Matrícula de '" << praticante->getNome() << "' realizada com sucesso!\n";
@@ -342,7 +354,7 @@ void StudioManager::matricularPraticanteEmAula() {
     }
 }
 
-// --- Métodos de Listagem ---
+// Métodos da Listagem
 
 void StudioManager::listarPraticantes() {
     std::cout << "\n--- Lista de Praticantes ---\n";
@@ -350,7 +362,7 @@ void StudioManager::listarPraticantes() {
         std::cout << "Nenhum praticante cadastrado.\n"; return;
     }
     for (const auto& p : praticantes) {
-        p.exibirDetalhes();
+        p.exibirDetalhes(); // Chama o método de exibição de cada praticante
     }
 }
 
@@ -360,7 +372,7 @@ void StudioManager::listarInstrutores() {
         std::cout << "Nenhum instrutor cadastrado.\n"; return;
     }
     for (const auto& i : instrutores) {
-        i.exibirDetalhes();
+        i.exibirDetalhes(); // Chama o método de exibição de cada instrutor
     }
 }
 
@@ -370,7 +382,7 @@ void StudioManager::listarPlanos() {
         std::cout << "Nenhum plano cadastrado.\n"; return;
     }
     for (const auto& p : planos) {
-        p.exibirDetalhes();
+        p.exibirDetalhes(); // Chama o método de exibição de cada plano
     }
 }
 
@@ -380,12 +392,15 @@ void StudioManager::listarAulas() {
         std::cout << "Nenhuma aula cadastrada.\n"; return;
     }
     for (const Aula* aulaPtr : aulas) {
+        
+        //para o poliformis:  O C++ chama automaticamente o 'exibirDetalhes'
+        // da classe filha correta (como HotYoga e  YogaPets)
         aulaPtr->exibirDetalhes();
         std::cout << "---------------------------------\n";
     }
 }
 
-// --- Métodos Auxiliares (Finders e Limpeza) ---
+// Métodos Auxiliares 
 
 int StudioManager::selecionarTipoAulaMenu() {
     int escolha = 0;
@@ -398,13 +413,13 @@ int StudioManager::selecionarTipoAulaMenu() {
         std::cout << "  > ";
         std::cin >> escolha;
 
-        if (std::cin.fail()) {
+        if (std::cin.fail()) { // Se a entrada não for um número
             std::cin.clear();
             limparBufferEntrada();
             std::cout << "Entrada inválida. Tente novamente.\n";
         } else {
             limparBufferEntrada();
-            if (escolha >= 0 && escolha <= 2) { // Ajuste este '2' se adicionar mais tipos
+            if (escolha >= 0 && escolha <= 2) { // Valida a faixa de opções
                 return escolha;
             }
             std::cout << "Opção inválida. Tente novamente.\n";
@@ -413,34 +428,35 @@ int StudioManager::selecionarTipoAulaMenu() {
 }
 
 void StudioManager::limparBufferEntrada() {
+    // Limpa o buffer de entrada do std::cin para evitar bugs com getline
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 // Finders (Iteram nos vetores para encontrar por ID)
 Praticante* StudioManager::findPraticanteById(int id) {
-    for (auto& p : praticantes) {
-        if (p.getId() == id) return &p;
+    for (auto& p : praticantes) { // Itera sobre o vetor de praticantes
+        if (p.getId() == id) return &p; // Retorna o endereço do praticante encontrado
     }
-    return nullptr;
+    return nullptr; // Retorna nulo se não encontrar
 }
 
 Instrutor* StudioManager::findInstrutorById(int id) {
-    for (auto& i : instrutores) {
-        if (i.getId() == id) return &i;
+    for (auto& i : instrutores) { // Itera sobre o vetor de instrutores
+        if (i.getId() == id) return &i; // Retorna o endereço do instrutor encontrado
     }
-    return nullptr;
+    return nullptr; // Retorna nulo se não encontrar
 }
 
 Aula* StudioManager::findAulaById(int id) {
-    for (auto* a : aulas) { // Note o ponteiro
-        if (a->getId() == id) return a;
+    for (auto* a : aulas) { // Itera sobre o vetor de ponteiros de aula
+        if (a->getId() == id) return a; // Retorna o ponteiro da aula encontrada
     }
-    return nullptr;
+    return nullptr; // Retorna nulo se não encontrar
 }
 
 Plano* StudioManager::findPlanoById(int id) {
-    for (auto& p : planos) {
-        if (p.getId() == id) return &p;
+    for (auto& p : planos) { // Itera sobre o vetor de planos
+        if (p.getId() == id) return &p; // Retorna o endereço do plano encontrado
     }
-    return nullptr;
+    return nullptr; // Retorna nulo se não encontrar
 }

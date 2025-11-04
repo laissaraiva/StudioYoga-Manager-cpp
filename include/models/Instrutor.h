@@ -7,12 +7,12 @@
 class Instrutor : public Pessoa {
 private:
     std::string especialidade;
-    std::vector<int> idsAulasMinistradas; // IDs das aulas que ele(a) dá
+    std::vector<int> idsAulasMinistradas; // IDs das aulas  dadas
 
 public:
     Instrutor(int id, const std::string& nome, const std::string& email, const std::string& especialidade);
 
-    // Getters/Setters específicos
+    // Getters/Setters 
     std::string getEspecialidade() const;
     void adicionarAula(int idAula);
 
@@ -20,4 +20,4 @@ public:
     void exibirDetalhes() const override;
 };
 
-#endif // INSTRUTOR_H
+#endif
