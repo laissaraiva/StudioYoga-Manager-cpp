@@ -60,17 +60,16 @@ header h1 {
 
 /* Estilo para a imagem do logo */
 .yoga-logo {
-    max-width: 600px;
+    max-width: 450px;
     height: auto;
     display: block;
     margin: 0px auto 30px auto;
-    /* Remove o filtro de sombra, que era para fundos escuros */
 }
 
 /* --- Estilo das Seções de Conteúdo --- */
 section {
     padding: 40px 0;
-    border-bottom: 1px solid #eeeeee; /* Linha divisória clara */
+    border-bottom: 1px solid #eeeeee;
 }
 
 section:last-of-type {
@@ -87,7 +86,7 @@ section h2 {
 
 /* --- Estilo dos Links Comuns --- */
 a {
-    color: #0056b3; /* Cor azul padrão para links */
+    color: #0056b3;
     text-decoration: none;
 }
 
