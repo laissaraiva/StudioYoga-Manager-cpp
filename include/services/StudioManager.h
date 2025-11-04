@@ -10,14 +10,8 @@
 #include "models/Plano.h"
 #include "models/Aula.h" // A Classe Mãe Abstrata
 
-#include "models/HotYoga.h"
-#include "models/YogaPets.h"
-#include "models/YogaFlow.h"
-#include "DataManager.h" // Inclui o novo gerenciador de persistência
-
 /**
  * @brief Classe principal que gerencia a UI (menu) e os dados em memória.
- * Esta classe substitui a antiga classe "StudioYoga" do arquivo monolítico.
  */
 class StudioManager {
 private:
@@ -27,9 +21,6 @@ private:
     std::vector<Praticante> praticantes;
     std::vector<Plano> planos;
 
-    // --- Gerenciador de Dados ---
-    DataManager dataManager; // Instância do gerenciador de persistência
-
     // --- Contadores de ID ---
     int proximoIdPessoa;
     int proximoIdAula;
@@ -37,7 +28,7 @@ private:
 
     // --- Métodos Auxiliares (privados) ---
     void limparBufferEntrada();
-    int selecionarTipoAulaMenu(); // <--- Substitui o "enum selecionarTipoAula"
+    int selecionarTipoAulaMenu(); 
 
     // Funções "find" para localizar objetos
     Praticante* findPraticanteById(int id);
@@ -46,31 +37,34 @@ private:
     Plano* findPlanoById(int id);
 
     // --- Métodos de Lógica do Menu (privados) ---
+    // (C)reate
     void cadastrarPraticante();
     void cadastrarInstrutor();
     void cadastrarPlano();
-    void cadastrarAula(); // <--- ATUALIZADO para usar Herança
+    void cadastrarAula(); 
     void matricularPraticanteEmAula();
 
+    // (R)ead
     void listarPraticantes();
     void listarInstrutores();
     void listarPlanos();
-    void listarAulas(); // <--- ATUALIZADO para usar Polimorfismo
+    void listarAulas(); 
+    void gerarRelatorioHTML(); // (Nosso "front" de consulta)
+
+    // --- NOVOS MÉTODOS PARA CRUD COMPLETO ---
+    // (U)pdate
+    void atualizarPraticante();
+    // (D)elete
+    void removerPraticante();
+    // --- FIM DAS ADIÇÕES ---
 
 public:
     // --- Construtor e Destrutor ---
-    /**
-     * @brief Construtor: Chamado ao iniciar. Irá chamar carregarDados().
-     */
     StudioManager();
-
-    /**
-     * @brief Destrutor: Chamado ao fechar. Irá chamar salvarDados() e limpar memória.
-     */
-    ~StudioManager();
+    ~StudioManager(); // Destrutor para limpar os ponteiros de Aula*
 
     // --- Ponto de Entrada do Menu ---
-    void run(); // (Era o "menuPrincipal" no seu código antigo)
+    void run(); 
 };
 
 #endif // STUDIOMANAGER_H
