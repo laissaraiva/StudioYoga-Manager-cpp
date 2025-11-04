@@ -1,0 +1,84 @@
+body {
+    background-color: #1a1a1a; /* Fundo escuro */
+    color: #e0e0e0;           /* Texto claro */
+    font-family: 'Inter', sans-serif; /* Fonte similar à do site */
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* --- Layout do Contêiner --- */
+.container {
+    max-width: 800px;  /* Define a largura máxima do conteúdo */
+    margin: 0 auto;    /* Centraliza o contêiner */
+    padding: 0 20px;   /* Adiciona espaçamento lateral */
+}
+
+/* --- Estilo da Barra de Navegação --- */
+nav {
+    background-color: #222;
+    border-bottom: 1px solid #444;
+    padding: 15px 0;
+    position: sticky; /* Faz a barra ficar fixa no topo */
+    top: 0;
+    z-index: 10;
+}
+
+nav .container {
+    display: flex; /* Alinha os links lado a lado */
+    justify-content: space-between; /* Espaça os links */
+}
+
+nav a {
+    color: #eee;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* --- Estilo do Cabeçalho (Hero) --- */
+header {
+    padding: 60px 0;
+    text-align: center;
+    border-bottom: 1px solid #444;
+}
+
+header h1 {
+    font-size: 2.5em;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+/* --- Estilo das Seções de Conteúdo --- */
+section {
+    padding: 40px 0; /* Espaçamento entre as seções */
+}
+
+section h2 {
+    font-size: 1.8em;
+    color: #ffffff;
+    border-bottom: 2px solid #555;
+    padding-bottom: 5px;
+}
+
+/* --- Estilo dos Links --- */
+a {
+    color: #8ab4f8; /* Cor azulada para links */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; /* Sublinhado ao passar o mouse */
+}
+
+/* --- Estilo dos Blocos de Código --- */
+pre {
+    background-color: #2f2f2f; /* Fundo mais claro para código */
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto; /* Permite rolagem horizontal se o código for longo */
+    font-family: 'Courier New', Courier, monospace;
+}
+
+code {
+    font-family: inherit;
+}
