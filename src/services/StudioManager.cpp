@@ -47,7 +47,7 @@ void StudioManager::run() {
         std::cout << "Digite sua escolha: ";
 
         if (!(std::cin >> escolha)) {
-            std::cout << "Opção inválida. Por favor, digite um número.\n";
+            std::cout << "Opção invalida. Por favor, digite um numero.\n";
             std::cin.clear();
             limparBufferEntrada();
             continue;
@@ -67,7 +67,7 @@ void StudioManager::run() {
                 case 8: listarPlanos(); break;
                 case 9: listarAulas(); break;
                 case 0: std::cout << "Saindo do sistema. Até logo!\n"; break;
-                default: std::cout << "Opção inválida. Tente novamente.\n";
+                default: std::cout << "Opção invalida. Tente novamente.\n";
             }
         } catch (const std::exception& e) {
             std::cerr << "ERRO: " << e.what() << std::endl;
