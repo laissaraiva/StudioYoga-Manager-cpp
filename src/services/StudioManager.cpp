@@ -1,114 +1,101 @@
 #include "services/StudioManager.h"
 #include "models/HotYoga.h"
-#include "models/YogaPets.h"
+#include "models/YogaPets.h" 
+#include "models/YogaWorkflow.h" // <-- [LINHA ADICIONADA]
+#include <iostream>
+#include <string>
+#include <limits>
 #include "data/DataManager.h"
 #include <algorithm>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <string>
-using namespace std;
+#include "validator/Validator.h"
+#include <cstdlib> // Para system("cls") ou system("clear")
+#include "utils/Color.h" // Nosso header de cores
+#include <fstream> // Para gerar o HTML
 
-// Helpers simples para validação local
-namespace {
-    bool isBlank(const string& s) {
-        return s.find_first_not_of(" \t\r\n") == string::npos;
-    }
-    bool isStringValida(const string& s) {
-        return !s.empty() && !isBlank(s);
-    }
-    bool isEmailValido(const string& s) {
-        auto at = s.find('@');
-        auto dot = s.find('.', at == string::npos ? 0 : at);
-        return at != string::npos && dot != string::npos && at < dot;
-    }
+// Nomes dos arquivos de persistência
+const std::string ARQ_PRATICANTES = "praticantes.dat"; // (Você mencionou que usa .dat)
+const std::string ARQ_INSTRUTORES = "instrutores.dat";
+const std::string ARQ_PLANOS = "planos.dat";
 
-    int encontrarProximoId(const vector<Praticante>& v) {
-        if (v.empty()) return 1;
-        auto maxIt = std::max_element(v.begin(), v.end(),
-            [](const Praticante& a, const Praticante& b) { return a.getId() < b.getId(); });
-        return maxIt->getId() + 1;
-    }
-    int encontrarProximoId(const vector<Instrutor>& v) {
-        if (v.empty()) return 1;
-        auto maxIt = std::max_element(v.begin(), v.end(),
-            [](const Instrutor& a, const Instrutor& b) { return a.getId() < b.getId(); });
-        return maxIt->getId() + 1;
-    }
-    int encontrarProximoId(const vector<Plano>& v) {
-        if (v.empty()) return 1;
-        auto maxIt = std::max_element(v.begin(), v.end(),
-            [](const Plano& a, const Plano& b) { return a.getId() < b.getId(); });
-        return maxIt->getId() + 1;
-    }
-    int encontrarProximoId(const vector<Aula*>& v) {
-        if (v.empty()) return 100;
-        auto maxIt = std::max_element(v.begin(), v.end(),
-            [](const Aula* a, const Aula* b) { return a->getId() < b->getId(); });
-        return (*maxIt)->getId() + 1;
-    }
+// --- Funções Auxiliares de ID ---
+int encontrarProximoId(const std::vector<Praticante>& v) {
+    if (v.empty()) return 1;
+    auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Praticante& a, const Praticante& b) { return a.getId() < b.getId(); });
+    return maxIt->getId() + 1;
+}
+int encontrarProximoId(const std::vector<Instrutor>& v) {
+     if (v.empty()) return 1;
+     auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Instrutor& a, const Instrutor& b) { return a.getId() < b.getId(); });
+    return maxIt->getId() + 1;
+}
+int encontrarProximoId(const std::vector<Plano>& v) {
+     if (v.empty()) return 1;
+     auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Plano& a, const Plano& b) { return a.getId() < b.getId(); });
+    return maxIt->getId() + 1;
+}
+int encontrarProximoId(const std::vector<Aula*>& v) {
+     // ID inicial (como visto no seu print)
+     if (v.empty()) return 190;
+     auto maxIt = std::max_element(v.begin(), v.end(), 
+        [](const Aula* a, const Aula* b) { return a->getId() < b->getId(); });
+    return (*maxIt)->getId() + 1;
 }
 
-// Construtor (carrega dados + modo demo)
+// --- Construtor (com Modo Demo) ---
 StudioManager::StudioManager() {
     std::cout << "Iniciando Studio Manager..." << std::endl;
+    
+    std::cout << "Carregando dados dos arquivos .dat..." << std::endl; // (Mudei para .dat)
+    this->planos = DataManager::carregarPlanos(ARQ_PLANOS);
+    this->instrutores = DataManager::carregarInstrutores(ARQ_INSTRUTORES);
+    this->praticantes = DataManager::carregarPraticantes(ARQ_PRATICANTES);
 
-    DataManager dm;
-    dm.carregarDados(this->planos,
-                     this->instrutores,
-                     this->praticantes,
-                     this->aulas,
-                     this->proximoIdPessoa,
-                     this->proximoIdAula,
-                     this->proximoIdPlano);
+    this->proximoIdPlano = encontrarProximoId(this->planos);
+    int proxPraticante = encontrarProximoId(this->praticantes);
+    int proxInstrutor = encontrarProximoId(this->instrutores);
+    this->proximoIdPessoa = std::max(proxPraticante, proxInstrutor); 
+    this->proximoIdAula = encontrarProximoId(this->aulas);
+    
+    std::cout << planos.size() << " planos, " << instrutores.size() << " instrutores, " << praticantes.size() << " praticantes carregados.\n";
 
-    // Se algum contador não foi calculado pelo DataManager, calcula aqui como fallback
-    if (this->proximoIdPlano <= 0)   this->proximoIdPlano = encontrarProximoId(this->planos);
-    if (this->proximoIdPessoa <= 0) {
-        int proxPraticante = encontrarProximoId(this->praticantes);
-        int proxInstrutor  = encontrarProximoId(this->instrutores);
-        this->proximoIdPessoa = std::max(proxPraticante, proxInstrutor);
-    }
-    if (this->proximoIdAula <= 0)    this->proximoIdAula = encontrarProximoId(this->aulas);
-
-    std::cout << planos.size() << " planos, " << instrutores.size()
-              << " instrutores, " << praticantes.size() << " praticantes carregados.\n";
-
-    // MODO DEMONSTRAÇÃO
+    // --- MODO DE DEMONSTRAÇÃO (MVP) ---
     if (planos.empty() && instrutores.empty() && praticantes.empty()) {
-        std::cout << "\nInfo: Nenhum dado carregado. Criando dados ficticios para demonstracao...\n";
+        std::cout << Color::B_YELLOW << "\nInfo: Nenhum dado carregado. Criando dados ficticios para demonstracao...\n" << Color::RESET;
 
         planos.emplace_back(proximoIdPlano++, "Plano Demo Mensal", 150.0);
         planos.emplace_back(proximoIdPlano++, "Plano Demo Avulso", 60.0);
-
+        
         instrutores.emplace_back(proximoIdPessoa++, "Instrutora Demo", "demo@yoga.com", "Todas");
         Instrutor* instrutorDemo = &instrutores.back();
 
         praticantes.emplace_back(proximoIdPessoa++, "Aluno Ficticio 1", "aluno1@mail.com", planos[0].getId());
         praticantes.emplace_back(proximoIdPessoa++, "Aluno Ficticio 2", "aluno2@mail.com", planos[1].getId());
         Praticante* aluno1 = &praticantes[0];
-
+        
         Aula* aulaHot = new HotYoga(proximoIdAula++, "Segunda 18:00", instrutorDemo->getId(), 20, 40);
         Aula* aulaPets = new YogaPets(proximoIdAula++, "Sabado 10:00", instrutorDemo->getId(), 15, "Cachorros de pequeno porte");
-
+        
         aulaHot->inscreverPraticante(aluno1->getId());
         aluno1->inscreverEmAula(aulaHot->getId());
 
-        aulas.push_back(aulaHot);
-        aulas.push_back(aulaPets);
-
-        std::cout << "Info: Dados ficticios criados com sucesso!\n";
+        this->aulas.push_back(aulaHot);
+        this->aulas.push_back(aulaPets);
+        
+        std::cout << Color::B_GREEN << "Info: Dados ficticios criados com sucesso!\n" << Color::RESET;
     }
 }
 
-// Destrutor
+// --- Destrutor ---
 StudioManager::~StudioManager() {
-    std::cout << "\nEncerrando Studio Manager..." << std::endl;
-
-    std::cout << "Salvando dados em arquivos .dat..." << std::endl;
-    DataManager dm;
-    dm.salvarDados(this->planos, this->instrutores, this->praticantes, this->aulas);
+    std::cout << Color::B_YELLOW << "\nEncerrando Studio Manager..." << Color::RESET << std::endl;
+    
+    std::cout << "Salvando dados em arquivos .dat..." << std::endl; // (Mudei para .dat)
+    DataManager::salvarPlanos(this->planos, ARQ_PLANOS);
+    DataManager::salvarInstrutores(this->instrutores, ARQ_INSTRUTORES);
+    DataManager::salvarPraticantes(this->praticantes, ARQ_PRATICANTES);
 
     std::cout << "Limpando ponteiros de aulas..." << std::endl;
     for (Aula* aula : aulas) {
@@ -116,30 +103,52 @@ StudioManager::~StudioManager() {
     }
 }
 
-// Ponto de Entrada do Menu
+// --- Ponto de Entrada do Menu (O "FRONT-END" TUI) ---
 void StudioManager::run() {
     int escolha = -1;
-    do {
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
-    imprimirMenuPrincipal();
-    std::cout << "Digite sua escolha: ";
+    do { 
+        #ifdef _WIN32
+            system("cls"); // Comando do Windows
+        #else
+            system("clear"); // Comando do Linux/Mac
+        #endif
+
+        // Menu com a paleta de cores (Amarelo/Branco)
+        std::cout << Color::B_YELLOW << "\n========= YOGA STUDIO MANAGEMENT (v2.0) =========\n" << Color::RESET;
+        std::cout << "1. Cadastrar Praticante\n";
+        std::cout << "2. Cadastrar Instrutor\n";
+        std::cout << "3. Cadastrar Plano\n";
+        std::cout << "4. Cadastrar Nova Aula\n";
+        std::cout << "------------------------------------------\n";
+        std::cout << "5. Matricular Praticante em Aula\n";
+        std::cout << "------------------------------------------\n";
+        std::cout << Color::B_WHITE << "6. Listar Praticantes\n"; 
+        std::cout << "7. Listar Instrutores\n";
+        std::cout << "8. Listar Planos\n";
+        std::cout << "9. Listar Aulas (com detalhes)\n" << Color::RESET;
+        std::cout << "10. " << Color::B_CYAN << "Gerar Relatorio HTML (Consultar)\n" << Color::RESET;
+        
+        std::cout << Color::B_WHITE << "------------------------------------------\n";
+        std::cout << "11. Atualizar Praticante\n";
+        std::cout << "12. Remover Praticante\n" << Color::RESET;
+
+        std::cout << "------------------------------------------\n";
+        std::cout << Color::YELLOW << "0. Sair e Salvar\n" << Color::RESET;
+        std::cout << "==========================================\n";
+        std::cout << Color::B_YELLOW << "Digite sua escolha: " << Color::RESET;
 
         if (!(std::cin >> escolha)) {
-            std::cout << "\nOpcao invalida. Por favor, digite um numero.\n";
-            std::cin.clear();
-            limparBufferEntrada();
+            std::cout << Color::B_RED << "\nOpção inválida. Por favor, digite um número.\n" << Color::RESET;
+            std::cin.clear(); 
+            limparBufferEntrada(); 
             std::cout << "\nPressione Enter para continuar...";
             limparBufferEntrada();
-            continue;
+            continue; 
         }
 
-        limparBufferEntrada();
+        limparBufferEntrada(); 
 
-        try {
+        try { 
             switch (escolha) {
                 case 1: cadastrarPraticante(); break;
                 case 2: cadastrarInstrutor(); break;
@@ -150,70 +159,49 @@ void StudioManager::run() {
                 case 7: listarInstrutores(); break;
                 case 8: listarPlanos(); break;
                 case 9: listarAulas(); break;
-                case 10:
-                    gerarRelatorioHTML();
-                    std::cout << "\n>>> 'relatorio.html' gerado com sucesso! <<<\n";
+                case 10: 
+                    gerarRelatorioHTML(); 
+                    std::cout << Color::B_GREEN << "\n>>> 'relatorio.html' gerado com sucesso! <<<\n" << Color::RESET;
                     break;
                 case 11: atualizarPraticante(); break;
                 case 12: removerPraticante(); break;
-                case 0:
-                    std::cout << "Saindo do sistema. Ate logo!\n";
+                case 0: 
+                    std::cout << Color::B_YELLOW << "Saindo do sistema. Até logo!\n" << Color::RESET; 
                     break;
-                default:
-                    std::cout << "\nOpcao invalida. Tente novamente.\n";
+                default: 
+                    std::cout << Color::B_RED << "\nOpção inválida. Tente novamente.\n" << Color::RESET;
             }
         } catch (const std::exception& e) {
-            std::cerr << "ERRO: " << e.what() << std::endl;
+            std::cerr << Color::BG_RED << "ERRO: " << e.what() << Color::RESET << std::endl;
         }
 
+        // Pausa a tela após cada ação (exceto sair)
         if (escolha != 0) {
-            std::cout << "\nPressione Enter para voltar ao menu...";
+            std::cout << Color::YELLOW << "\nPressione Enter para voltar ao menu..." << Color::RESET;
             limparBufferEntrada();
         }
 
     } while (escolha != 0);
 }
 
-// Exibe o menu principal completo (1 a 12 e 0)
-void StudioManager::imprimirMenuPrincipal() const {
-    std::cout << "\n========= YOGA STUDIO MANAGEMENT (v2.0) =========\n";
-    std::cout << "1. Cadastrar Praticante\n";
-    std::cout << "2. Cadastrar Instrutor\n";
-    std::cout << "3. Cadastrar Plano\n";
-    std::cout << "4. Cadastrar Nova Aula\n";
-    std::cout << "------------------------------------------\n";
-    std::cout << "5. Matricular Praticante em Aula\n";
-    std::cout << "------------------------------------------\n";
-    std::cout << "6. Listar Praticantes\n";
-    std::cout << "7. Listar Instrutores\n";
-    std::cout << "8. Listar Planos\n";
-    std::cout << "9. Listar Aulas (com detalhes)\n";
-    std::cout << "10. Gerar Relatorio HTML (Consultar)\n";
-    std::cout << "------------------------------------------\n";
-    std::cout << "11. Atualizar Praticante\n";
-    std::cout << "12. Remover Praticante\n";
-    std::cout << "------------------------------------------\n";
-    std::cout << "0. Sair e Salvar\n";
-    std::cout << "==========================================\n";
-}
 
-// Métodos de Lógica (C)REATE
+// --- Métodos de Lógica (C)REATE ---
 
 void StudioManager::cadastrarPraticante() {
     std::string nome, email;
     int idPlano;
-    std::cout << "\n--- Cadastro de Praticante\n";
+    std::cout << Color::B_WHITE << "\n--- Cadastro de Praticante ---\n" << Color::RESET;
     std::cout << "Nome: ";
     std::getline(std::cin, nome);
     std::cout << "Email: ";
     std::getline(std::cin, email);
 
-    if (!isStringValida(nome)) {
-        std::cout << "Erro: O nome nao pode estar vazio. Cadastro cancelado.\n";
+    if (!Validator::isStringValida(nome)) {
+        std::cout << Color::B_RED << "Erro: O nome nao pode estar vazio. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
-    if (!isEmailValido(email)) {
-        std::cout << "Erro: O formato do email e invalido. Cadastro cancelado.\n";
+    if (!Validator::isEmailValido(email)) {
+        std::cout << Color::B_RED << "Erro: O formato do email e invalido. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
 
@@ -223,18 +211,18 @@ void StudioManager::cadastrarPraticante() {
     limparBufferEntrada();
 
     if (findPlanoById(idPlano) == nullptr) {
-        std::cout << "Erro: Plano nao encontrado.\n";
+        std::cout << Color::B_RED << "Erro: Plano não encontrado.\n" << Color::RESET;
         return;
     }
 
     int novoId = proximoIdPessoa++;
     praticantes.emplace_back(novoId, nome, email, idPlano);
-    std::cout << "Praticante '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
+    std::cout << Color::B_GREEN << "Praticante '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n" << Color::RESET;
 }
 
 void StudioManager::cadastrarInstrutor() {
     std::string nome, email, especialidade;
-    std::cout << "\n--- Cadastro de Instrutor\n";
+    std::cout << Color::B_WHITE << "\n--- Cadastro de Instrutor ---\n" << Color::RESET;
     std::cout << "Nome: ";
     std::getline(std::cin, nome);
     std::cout << "Email: ";
@@ -242,68 +230,68 @@ void StudioManager::cadastrarInstrutor() {
     std::cout << "Especialidade: ";
     std::getline(std::cin, especialidade);
 
-    if (!isStringValida(nome) || !isStringValida(especialidade)) {
-        std::cout << "Erro: Nome e Especialidade nao podem estar vazios. Cadastro cancelado.\n";
+    if (!Validator::isStringValida(nome) || !Validator::isStringValida(especialidade)) {
+        std::cout << Color::B_RED << "Erro: Nome e Especialidade nao podem estar vazios. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
-    if (!isEmailValido(email)) {
-        std::cout << "Erro: O formato do email e invalido. Cadastro cancelado.\n";
+    if (!Validator::isEmailValido(email)) {
+        std::cout << Color::B_RED << "Erro: O formato do email e invalido. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
 
     int novoId = proximoIdPessoa++;
     instrutores.emplace_back(novoId, nome, email, especialidade);
-    std::cout << "Instrutor '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
+    std::cout << Color::B_GREEN << "Instrutor '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n" << Color::RESET;
 }
 
 void StudioManager::cadastrarPlano() {
     std::string nome;
     double preco;
-    std::cout << "\n--- Cadastro de Plano\n";
+    std::cout << Color::B_WHITE << "\n--- Cadastro de Plano ---\n" << Color::RESET;
     std::cout << "Nome (Ex: Mensal, Trimestral): ";
     std::getline(std::cin, nome);
-    std::cout << "Preco (Ex: 99.90): ";
+    std::cout << "Preço (Ex: 99.90): ";
     std::cin >> preco;
     limparBufferEntrada();
 
-    if (!isStringValida(nome)) {
-        std::cout << "Erro: O nome do plano nao pode estar vazio. Cadastro cancelado.\n";
+    if (!Validator::isStringValida(nome)) {
+        std::cout << Color::B_RED << "Erro: O nome do plano nao pode estar vazio. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
     if (preco <= 0) {
-        std::cout << "Erro: O preco deve ser um valor positivo. Cadastro cancelado.\n";
+        std::cout << Color::B_RED << "Erro: O preco deve ser um valor positivo. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
 
     int novoId = proximoIdPlano++;
     planos.emplace_back(novoId, nome, preco);
-    std::cout << "Plano '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
+    std::cout << Color::B_GREEN << "Plano '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n" << Color::RESET;
 }
 
 void StudioManager::cadastrarAula() {
-    std::cout << "\n--- Cadastro de Nova Aula\n";
+    std::cout << Color::B_WHITE << "\n--- Cadastro de Nova Aula ---\n" << Color::RESET;
     if (instrutores.empty()) {
-        std::cout << "Erro: Cadastre um instrutor primeiro.\n";
+        std::cout << Color::B_RED << "Erro: Cadastre um instrutor primeiro.\n" << Color::RESET;
         return;
     }
 
     int tipoAula = selecionarTipoAulaMenu();
-    if (tipoAula == 0) return;
+    if (tipoAula == 0) return; 
 
     std::string horario;
     int limiteAlunos;
-    std::cout << "Horario (Ex: Seg 18:00): ";
+    std::cout << "Horário (Ex: Seg 18:00): ";
     std::getline(std::cin, horario);
     std::cout << "Limite de Alunos: ";
     std::cin >> limiteAlunos;
     limparBufferEntrada();
 
-    if (!isStringValida(horario)) {
-        std::cout << "Erro: O horario nao pode estar vazio. Cadastro cancelado.\n";
+    if (!Validator::isStringValida(horario)) {
+        std::cout << Color::B_RED << "Erro: O horario nao pode estar vazio. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
     if (limiteAlunos <= 0) {
-        std::cout << "Erro: O limite de alunos deve ser positivo. Cadastro cancelado.\n";
+        std::cout << Color::B_RED << "Erro: O limite de alunos deve ser positivo. Cadastro cancelado.\n" << Color::RESET;
         return;
     }
 
@@ -315,7 +303,7 @@ void StudioManager::cadastrarAula() {
 
     Instrutor* instrutor = findInstrutorById(idInstrutor);
     if (instrutor == nullptr) {
-        std::cout << "Erro: Instrutor nao encontrado.\n";
+        std::cout << Color::B_RED << "Erro: Instrutor não encontrado.\n" << Color::RESET;
         return;
     }
 
@@ -323,8 +311,8 @@ void StudioManager::cadastrarAula() {
     int novoId = proximoIdAula++;
 
     switch (tipoAula) {
-        case 1: {
-            std::cout << "Digite a Temperatura da Sala (em C): ";
+        case 1: { 
+            std::cout << "Digite a Temperatura da Sala (em °C): ";
             int temp;
             std::cin >> temp;
             limparBufferEntrada();
@@ -332,36 +320,50 @@ void StudioManager::cadastrarAula() {
             break;
         }
         case 2: {
-            std::cout << "Tipo de Pet Permitido (Ex: Gatos, Cachorros docil): ";
+            std::cout << "Tipo de Pet Permitido (Ex: Gatos, Cachorros dócil): ";
             std::string tipoPet;
             std::getline(std::cin, tipoPet);
-            if (!isStringValida(tipoPet)) {
-                std::cout << "Erro: O tipo de pet nao pode estar vazio. Cadastro cancelado.\n";
+             if (!Validator::isStringValida(tipoPet)) {
+                std::cout << Color::B_RED << "Erro: O tipo de pet nao pode estar vazio. Cadastro cancelado.\n" << Color::RESET;
                 proximoIdAula--;
                 return;
             }
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
+        // --- [LÓGICA ADICIONADA] ---
+        case 3: { 
+            std::cout << "Foco do Workflow (Ex: Força, Flexibilidade): ";
+            std::string foco;
+            std::getline(std::cin, foco);
+            if (!Validator::isStringValida(foco)) {
+                std::cout << Color::B_RED << "Erro: O foco nao pode estar vazio. Cadastro cancelado.\n" << Color::RESET;
+                proximoIdAula--;
+                return;
+            }
+            novaAula = new YogaWorkflow(novoId, horario, idInstrutor, limiteAlunos, foco);
+            break;
+        }
+        // --- [FIM DA LÓGICA] ---
         default:
-            std::cout << "Erro: Tipo de aula invalido.\n";
-            proximoIdAula--;
+            std::cout << Color::B_RED << "Erro: Tipo de aula inválido.\n" << Color::RESET;
+            proximoIdAula--; 
             return;
     }
 
     aulas.push_back(novaAula);
-    instrutor->adicionarAula(novoId);
+    instrutor->adicionarAula(novoId); 
 
-    std::cout << "Aula (ID: " << novoId << ") cadastrada com sucesso!\n";
+    std::cout << Color::B_GREEN << "Aula (ID: " << novoId << ") cadastrada com sucesso!\n" << Color::RESET;
 }
 
 void StudioManager::matricularPraticanteEmAula() {
-    std::cout << "\n--- Matricular Praticante em Aula\n";
+    std::cout << Color::B_WHITE << "\n--- Matricular Praticante em Aula ---\n" << Color::RESET;
     if (praticantes.empty()) {
-        std::cout << "Erro: Nenhum praticante cadastrado.\n"; return;
+        std::cout << Color::B_RED << "Erro: Nenhum praticante cadastrado.\n" << Color::RESET; return;
     }
     if (aulas.empty()) {
-        std::cout << "Erro: Nenhuma aula cadastrada.\n"; return;
+        std::cout << Color::B_RED << "Erro: Nenhuma aula cadastrada.\n" << Color::RESET; return;
     }
 
     listarPraticantes();
@@ -371,7 +373,7 @@ void StudioManager::matricularPraticanteEmAula() {
     limparBufferEntrada();
     Praticante* praticante = findPraticanteById(idPraticante);
     if (praticante == nullptr) {
-        std::cout << "Erro: Praticante nao encontrado.\n"; return;
+        std::cout << Color::B_RED << "Erro: Praticante não encontrado.\n" << Color::RESET; return;
     }
 
     listarAulas();
@@ -381,51 +383,67 @@ void StudioManager::matricularPraticanteEmAula() {
     limparBufferEntrada();
     Aula* aula = findAulaById(idAula);
     if (aula == nullptr) {
-        std::cout << "Erro: Aula nao encontrada.\n"; return;
+        std::cout << Color::B_RED << "Erro: Aula não encontrada.\n" << Color::RESET; return;
     }
 
     if (aula->inscreverPraticante(praticante->getId())) {
         praticante->inscreverEmAula(aula->getId());
-        std::cout << "Matricula de '" << praticante->getNome() << "' realizada com sucesso!\n";
+        std::cout << Color::B_GREEN << "Matrícula de '" << praticante->getNome() << "' realizada com sucesso!\n" << Color::RESET;
     } else {
-        std::cout << "Nao foi possivel matricular. A aula pode estar lotada.\n";
+        std::cout << Color::B_RED << "Não foi possível matricular. A aula pode estar lotada.\n" << Color::RESET;
     }
 }
 
-// Métodos de Lógica (R)EAD
+// --- Métodos de Lógica (R)EAD ---
 
 void StudioManager::listarPraticantes() {
-    std::cout << "\n--- Lista de Praticantes\n";
-    if (praticantes.empty()) { std::cout << "Nenhum praticante cadastrado.\n"; return; }
-    for (const auto& p : praticantes) p.exibirDetalhes();
+    std::cout << Color::B_WHITE << "\n--- Lista de Praticantes ---\n" << Color::RESET;
+    if (praticantes.empty()) {
+        std::cout << "Nenhum praticante cadastrado.\n"; return;
+    }
+    for (const auto& p : praticantes) {
+        p.exibirDetalhes();
+    }
 }
 
 void StudioManager::listarInstrutores() {
-    std::cout << "\n--- Lista de Instrutores\n";
-    if (instrutores.empty()) { std::cout << "Nenhum instrutor cadastrado.\n"; return; }
-    for (const auto& i : instrutores) i.exibirDetalhes();
+    std::cout << Color::B_WHITE << "\n--- Lista de Instrutores ---\n" << Color::RESET;
+    if (instrutores.empty()) {
+        std::cout << "Nenhum instrutor cadastrado.\n"; return;
+    }
+    for (const auto& i : instrutores) {
+        i.exibirDetalhes();
+    }
 }
 
 void StudioManager::listarPlanos() {
-    std::cout << "\n--- Lista de Planos\n";
-    if (planos.empty()) { std::cout << "Nenhum plano cadastrado.\n"; return; }
-    for (const auto& p : planos) p.exibirDetalhes();
+    std::cout << Color::B_WHITE << "\n--- Lista de Planos ---\n" << Color::RESET;
+    if (planos.empty()) {
+        std::cout << "Nenhum plano cadastrado.\n"; return;
+    }
+    for (const auto& p : planos) {
+        p.exibirDetalhes();
+    }
 }
 
 void StudioManager::listarAulas() {
-    std::cout << "\n--- Lista de Aulas (Total: " << aulas.size() << ")\n";
-    if (aulas.empty()) { std::cout << "Nenhuma aula cadastrada.\n"; return; }
+    std::cout << Color::B_WHITE << "\n--- Lista de Aulas --- (Total: " << aulas.size() << ")\n" << Color::RESET;
+    if (aulas.empty()) {
+        std::cout << "Nenhuma aula cadastrada.\n"; return;
+    }
     for (const Aula* aulaPtr : aulas) {
         aulaPtr->exibirDetalhes();
         std::cout << "---------------------------------\n";
     }
 }
 
-// Update/Delete
+// --- Métodos de Lógica (U)PDATE E (D)ELETE ---
 
 void StudioManager::atualizarPraticante() {
-    std::cout << "\n--- Atualizar Praticante\n";
-    if (praticantes.empty()) { std::cout << "Erro: Nenhum praticante cadastrado.\n"; return; }
+    std::cout << Color::B_WHITE << "\n--- Atualizar Praticante ---\n" << Color::RESET;
+    if (praticantes.empty()) {
+        std::cout << Color::B_RED << "Erro: Nenhum praticante cadastrado.\n" << Color::RESET; return;
+    }
 
     listarPraticantes();
     std::cout << "Digite o ID do Praticante que deseja atualizar: ";
@@ -435,43 +453,47 @@ void StudioManager::atualizarPraticante() {
 
     Praticante* praticante = findPraticanteById(id);
     if (praticante == nullptr) {
-        std::cout << "Erro: Praticante com ID " << id << " nao encontrado.\n";
+        std::cout << Color::B_RED << "Erro: Praticante com ID " << id << " não encontrado.\n" << Color::RESET;
         return;
     }
 
     int escolha = 0;
     std::cout << "Praticante encontrado: " << praticante->getNome() << "\n";
     std::cout << "O que deseja atualizar?\n";
-    std::cout << "1. Nome\n2. Email\n3. Plano\n0. Cancelar\n> ";
+    std::cout << "1. Nome\n";
+    std::cout << "2. Email\n";
+    std::cout << "3. Plano\n";
+    std::cout << "0. Cancelar\n";
+    std::cout << "> ";
     std::cin >> escolha;
     limparBufferEntrada();
 
     switch (escolha) {
-        case 1: {
+        case 1: { 
             std::string novoNome;
             std::cout << "Digite o novo Nome: ";
             std::getline(std::cin, novoNome);
-            if (isStringValida(novoNome)) {
+            if (Validator::isStringValida(novoNome)) {
                 praticante->setNome(novoNome);
-                std::cout << "Nome atualizado com sucesso!\n";
+                std::cout << Color::B_GREEN << "Nome atualizado com sucesso!\n" << Color::RESET;
             } else {
-                std::cout << "Erro: Nome invalido.\n";
+                std::cout << Color::B_RED << "Erro: Nome inválido.\n" << Color::RESET;
             }
             break;
         }
-        case 2: {
+        case 2: { 
             std::string novoEmail;
             std::cout << "Digite o novo Email: ";
             std::getline(std::cin, novoEmail);
-            if (isEmailValido(novoEmail)) {
+            if (Validator::isEmailValido(novoEmail)) {
                 praticante->setEmail(novoEmail);
-                std::cout << "Email atualizado com sucesso!\n";
+                std::cout << Color::B_GREEN << "Email atualizado com sucesso!\n" << Color::RESET;
             } else {
-                std::cout << "Erro: Email invalido.\n";
+                std::cout << Color::B_RED << "Erro: Email inválido.\n" << Color::RESET;
             }
             break;
         }
-        case 3: {
+        case 3: { 
             listarPlanos();
             std::cout << "Digite o ID do novo Plano: ";
             int idPlano;
@@ -479,27 +501,29 @@ void StudioManager::atualizarPraticante() {
             limparBufferEntrada();
             if (findPlanoById(idPlano) != nullptr) {
                 praticante->setIdPlano(idPlano);
-                std::cout << "Plano atualizado com sucesso!\n";
+                std::cout << Color::B_GREEN << "Plano atualizado com sucesso!\n" << Color::RESET;
             } else {
-                std::cout << "Erro: Plano nao encontrado.\n";
+                std::cout << Color::B_RED << "Erro: Plano não encontrado.\n" << Color::RESET;
             }
             break;
         }
         case 0:
-            std::cout << "Atualizacao cancelada.\n";
+            std::cout << "Atualização cancelada.\n";
             break;
         default:
-            std::cout << "Opcao invalida.\n";
+            std::cout << Color::B_RED << "Opção inválida.\n" << Color::RESET;
             break;
     }
 }
 
 void StudioManager::removerPraticante() {
-    std::cout << "\n--- Remover Praticante\n";
-    if (praticantes.empty()) { std::cout << "Erro: Nenhum praticante cadastrado.\n"; return; }
+    std::cout << Color::B_WHITE << "\n--- Remover Praticante ---\n" << Color::RESET;
+    if (praticantes.empty()) {
+        std::cout << Color::B_RED << "Erro: Nenhum praticante cadastrado.\n" << Color::RESET; return;
+    }
 
     listarPraticantes();
-    std::cout << "Digite o ID do Praticante que deseja REMOVER (acao irreversivel!): ";
+    std::cout << "Digite o ID do Praticante que deseja REMOVER (ação irreversível!): ";
     int id;
     std::cin >> id;
     limparBufferEntrada();
@@ -509,77 +533,88 @@ void StudioManager::removerPraticante() {
     });
 
     if (iter == praticantes.end()) {
-        std::cout << "Erro: Praticante com ID " << id << " nao encontrado.\n";
+        std::cout << Color::B_RED << "Erro: Praticante com ID " << id << " não encontrado.\n" << Color::RESET;
         return;
     }
-
+    
     std::string nomePraticante = iter->getNome();
     char confirmacao;
-    std::cout << "Tem certeza que deseja remover '" << nomePraticante << "'? (s/n): ";
+    std::cout << Color::B_RED << "Tem certeza que deseja remover '" << nomePraticante << "'? (s/n): " << Color::RESET;
     std::cin >> confirmacao;
     limparBufferEntrada();
 
     if (confirmacao == 's' || confirmacao == 'S') {
         praticantes.erase(iter);
-        // TODO: Remover este id de todas as aulas
-        std::cout << "Praticante '" << nomePraticante << "' removido com sucesso.\n";
+        std::cout << Color::B_GREEN << "Praticante '" << nomePraticante << "' removido com sucesso.\n" << Color::RESET;
     } else {
-        std::cout << "Remocao cancelada.\n";
+        std::cout << "Remoção cancelada.\n";
     }
 }
 
-// Auxiliares
+
+// --- Métodos Auxiliares (Limpeza e Finders) ---
 
 int StudioManager::selecionarTipoAulaMenu() {
     int escolha = 0;
     while (true) {
-        std::cout << "  Selecione o Tipo de Aula:\n";
+        std::cout << Color::B_WHITE << "  Selecione o Tipo de Aula:\n" << Color::RESET;
         std::cout << "  1. Hot Yoga\n";
         std::cout << "  2. Yoga com Pets\n";
-        std::cout << "  0. Cancelar\n";
+        std::cout << "  3. Yoga Workflow\n"; // <-- [LINHA ADICIONADA]
+        std::cout << "  0. " << Color::YELLOW << "Cancelar\n" << Color::RESET;
         std::cout << "  > ";
         std::cin >> escolha;
 
         if (std::cin.fail()) {
             std::cin.clear();
             limparBufferEntrada();
-            std::cout << "Entrada invalida. Tente novamente.\n";
+            std::cout << Color::B_RED << "Entrada inválida. Tente novamente.\n" << Color::RESET;
         } else {
             limparBufferEntrada();
-            if (escolha >= 0 && escolha <= 2) {
+            // --- [LÓGICA MODIFICADA] ---
+            if (escolha >= 0 && escolha <= 3) { // Alterado de 2 para 3
                 return escolha;
             }
-            std::cout << "Opcao invalida. Tente novamente.\n";
+            // --- [FIM DA LÓGICA] ---
+            std::cout << Color::B_RED << "Opção inválida. Tente novamente.\n" << Color::RESET;
         }
     }
 }
 
 void StudioManager::limparBufferEntrada() {
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // <--- removido std::
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 Praticante* StudioManager::findPraticanteById(int id) {
-    for (auto& p : praticantes) if (p.getId() == id) return &p;
+    for (auto& p : praticantes) {
+        if (p.getId() == id) return &p;
+    }
     return nullptr;
 }
 Instrutor* StudioManager::findInstrutorById(int id) {
-    for (auto& i : instrutores) if (i.getId() == id) return &i;
+    for (auto& i : instrutores) {
+        if (i.getId() == id) return &i;
+    }
     return nullptr;
 }
 Aula* StudioManager::findAulaById(int id) {
-    for (auto* a : aulas) if (a->getId() == id) return a;
+    for (auto* a : aulas) {
+        if (a->getId() == id) return a;
+    }
     return nullptr;
 }
 Plano* StudioManager::findPlanoById(int id) {
-    for (auto& p : planos) if (p.getId() == id) return &p;
+    for (auto& p : planos) {
+        if (p.getId() == id) return &p;
+    }
     return nullptr;
 }
 
-// Relatório HTML
+// --- Geração do Relatório HTML (o "front" de consulta) ---
 void StudioManager::gerarRelatorioHTML() {
     std::ofstream relatorio("relatorio.html", std::ios::trunc);
     if (!relatorio.is_open()) {
-        std::cout << "Erro ao tentar criar o arquivo relatorio.html\n";
+        std::cout << Color::B_RED << "Erro ao tentar criar o arquivo relatorio.html\n" << Color::RESET;
         return;
     }
 
@@ -609,13 +644,13 @@ void StudioManager::gerarRelatorioHTML() {
 
     relatorio << "<h2>Instrutores Cadastrados (" << instrutores.size() << ")</h2>\n";
     for (const auto& i : instrutores) {
-        relatorio << "<div class=\"card\">\n";
+        relatorio << "<div classcard\">\n";
         relatorio << "  <p><strong>Nome:</strong> " << i.getNome() << "</p>\n";
         relatorio << "  <p><strong>Email:</strong> " << i.getEmail() << "</p>\n";
         relatorio << "  <p><strong>Especialidade:</strong> " << i.getEspecialidade() << "</p>\n";
         relatorio << "</div>\n";
     }
-
+    
     relatorio << "<h2>Planos Disponiveis (" << planos.size() << ")</h2>\n";
     for (const auto& pl : planos) {
         relatorio << "<div class=\"card\">\n";
@@ -631,19 +666,27 @@ void StudioManager::gerarRelatorioHTML() {
     }
     for (const Aula* a : aulas) {
         relatorio << "<div class=\"card\">\n";
-        relatorio << "  <p><strong>Tipo de Aula:</strong> " << a->getTipo() << "</p>\n";
+        relatorio << "  <p><strong>Tipo de Aula:</strong> " << a->getTipoDeAula() << "</p>\n";
         relatorio << "  <p><strong>ID da Aula:</strong> " << a->getId() << "</p>\n";
         relatorio << "  <p><strong>Horario:</strong> " << a->getHorario() << "</p>\n";
         relatorio << "  <p><strong>Vagas:</strong> " << a->getVagasDisponiveis() << " / " << a->getLimiteAlunos() << "</p>\n";
-
+        
+        // Polimorfismo para detalhes extras no HTML
         const HotYoga* hot = dynamic_cast<const HotYoga*>(a);
         if (hot) {
-            relatorio << "  <p><strong>Temperatura:</strong> " << hot->getTemperatura() << "C</p>\n";
+            relatorio << "  <p><strong>Temperatura:</strong> " << hot->getTemperatura() << "°C</p>\n";
         }
         const YogaPets* pets = dynamic_cast<const YogaPets*>(a);
         if (pets) {
-            relatorio << "  <p><strong>Pets:</strong> " << pets->getTipoPet() << "</p>\n";
+            relatorio << "  <p><strong>Pets:</strong> " << pets->getTipoPetPermitido() << "</p>\n";
         }
+        // --- [LÓGICA ADICIONADA] ---
+        const YogaWorkflow* workflow = dynamic_cast<const YogaWorkflow*>(a);
+        if (workflow) {
+            relatorio << "  <p><strong>Foco:</strong> " << workflow->getFoco() << "</p>\n";
+        }
+        // --- [FIM DA LÓGICA] ---
+
         relatorio << "</div>\n";
     }
 
