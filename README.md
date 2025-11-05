@@ -160,15 +160,17 @@ StudioYoga-Manager-cpp/
 
 ## Como Executar
 
-## Clone o repositório
+### Clone o repositório
 git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git
 
-# Entre na pasta
+### Entre na pasta
 cd StudioYoga-Manager-cpp
+mkdir build
+cd build
+cmake ..
 
-# Compile o projeto
-cmake .
-make
+### Compile o projeto
+cmake --build .
 
-# Execute
-./studio_yoga
+### Execute
+./StudioYogaManager
