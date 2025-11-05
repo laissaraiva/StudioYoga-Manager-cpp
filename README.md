@@ -52,10 +52,10 @@ A estrutura segue um modelo **UML orientado a objetos**, com separação clara e
 Classe base que representa qualquer indivíduo no estúdio.
 
 **Atributos:**
-- `nome`, `CPF`, `gênero`
+- `nome`, `E-mail`, `gênero`
 
 **Métodos:**
-- `exibirDetalhes()`, `getNome()`, `getCPF()`, `getGenero()`
+- `exibirDetalhes()`, `getNome()`, `getEmail()`, `getGenero()`
 
 ---
 
@@ -139,25 +139,20 @@ Cada uma redefine `getRequisitos()` e `exibirDetalhes()` conforme suas particula
 
 ## Estrutura do Projeto
 
-StudioYoga-Manager-cpp
-│
-├── docs/                  # Documentação, diagramas e relatórios
-│
+StudioYoga-Manager-cpp/
+├── docs/ # Documentação, diagramas e relatórios
 ├── include/
-│   ├── data/              # Headers de persistência e estruturas de dados
-│   ├── models/            # Classes do domínio → Pessoa, Aula, Plano, etc.
-│   └── services/          # Lógica de negócio → StudioManager.h
-│
+│ ├── data/ # Headers de persistência e estruturas de dados
+│ ├── models/ # Classes do domínio → Pessoa, Aula, Plano, etc.
+│ └── services/ # Lógica de negócio → StudioManager.h
 ├── src/
-│   ├── data/              # Implementações de persistência
-│   ├── models/            # Implementações das classes do domínio
-│   └── services/          # Implementações de serviços e controladores
-│
-├── CMakeLists.txt         # Configuração de build
-├── README.md              # Documentação geral
-├── main.cpp               # Ponto de entrada
-└── cmake-build-debug/     # Arquivos temporários de build
-
+│ ├── data/ # Implementações de persistência
+│ ├── models/ # Implementações das classes do domínio
+│ ├── services/ # Implementações de serviços e controladores
+│ └── main.cpp # Ponto de entrada
+├── CMakeLists.txt # Configuração de build
+├── README.md # Documentação geral
+└── cmake-build-debug/ # Arquivos temporários de build
 
 ---
 
