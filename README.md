@@ -139,6 +139,7 @@ Cada uma redefine `getRequisitos()` e `exibirDetalhes()` conforme suas particula
 
 ## Estrutura do Projeto
 
+```bash
 StudioYoga-Manager-cpp/
 ├── docs/ # Documentação, diagramas e relatórios
 ├── include/
@@ -153,13 +154,13 @@ StudioYoga-Manager-cpp/
 ├── CMakeLists.txt # Configuração de build
 ├── README.md # Documentação geral
 └── cmake-build-debug/ # Arquivos temporários de build
+```
 
 ---
 
 ## Como Executar
 
-```bash
-# Clone o repositório
+## Clone o repositório
 git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git
 
 # Entre na pasta
