@@ -5,10 +5,12 @@ Instrutor::Instrutor(int id, const std::string& nome, const std::string& email, 
     : Pessoa(id, nome, email), // Chama o construtor da Mãe
       especialidade(especialidade) {}
 
+// Getter
 std::string Instrutor::getEspecialidade() const {
     return especialidade;
 }
 
+// Lógica de Negócios Comum
 void Instrutor::adicionarAula(int idAula) {
     idsAulasMinistradas.push_back(idAula);
 }

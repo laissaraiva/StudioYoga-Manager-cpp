@@ -1,8 +1,11 @@
 #include "models/Praticante.h"
 using namespace std;
 
+// Implementação da classe Praticante (herda de Pessoa)
+// Herança: reaproveita id, nome, email de pessoa.
+// Encapsulamento: acessa e manipula seus próprios dados via métodos.
 Praticante::Praticante(int id, const std::string& nome, const std::string& email, int idPlano)
-    : Pessoa(id, nome, email), // Chama o construtor da Mãe
+    : Pessoa(id, nome, email),
       idPlano(idPlano) {}
 
 int Praticante::getIdPlano() const {

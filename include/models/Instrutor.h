@@ -4,6 +4,7 @@
 #include "models/Pessoa.h"
 #include <vector>
 
+// Herdeira de pessoa
 class Instrutor : public Pessoa {
 private:
     std::string especialidade;
