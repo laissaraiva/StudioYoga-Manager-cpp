@@ -1,9 +1,10 @@
-#include "models/Pessoa.h" // <--- Inclui o header
+#include "models/Pessoa.h"
 
+//Encapsulamento com atributos privados e acesso controlado por getters/setters.
 Pessoa::Pessoa(int id, const std::string& nome, const std::string& email)
     : id(id), nome(nome), email(email) {}
 
-// Destrutor (importante para herança)
+// Destrutor
 Pessoa::~Pessoa() {}
 
 // Getters
@@ -16,6 +17,5 @@ void Pessoa::setNome(const std::string& novoNome) {
     this->nome = novoNome;
 }
 void Pessoa::setEmail(const std::string& novoEmail) {
-    // (Aqui poderia ter uma validação de email)
     this->email = novoEmail;
 }

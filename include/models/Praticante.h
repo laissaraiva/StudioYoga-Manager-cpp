@@ -1,10 +1,11 @@
 #ifndef PRATICANTE_H
 #define PRATICANTE_H
 
-#include "models/Pessoa.h" // Inclui a classe Mãe
+#include "models/Pessoa.h"
 #include <vector>
 #include <iostream>
 
+// Classe herdeira de pessoa
 class Praticante : public Pessoa {
 private:
     int idPlano; // ID do plano que o praticante assinou

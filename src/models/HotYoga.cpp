@@ -2,10 +2,9 @@
 #include <iostream>
 using namespace std;
 
-// Construtor
-// Chama o construtor da Mãe (Aula) e inicializa o seu próprio atributo (temperaturaSala)
+// Construtor com atributos de Aula e inicializacao do seu próprio atributo
 HotYoga::HotYoga(int id, const std::string& horario, int idInstrutor, int limiteAlunos, int temperatura)
-    : Aula(id, horario, idInstrutor, limiteAlunos), // <--- Chama o construtor da Mãe
+    : Aula(id, horario, idInstrutor, limiteAlunos),
       temperaturaSala(temperatura) {
 }
 

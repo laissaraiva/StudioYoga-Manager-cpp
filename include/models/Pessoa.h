@@ -5,6 +5,7 @@
 #include <iostream>
 using namespace std;
 
+// Classe abstrata, base para as que herdarão dela
 class Pessoa {
 protected:
     int id;
@@ -12,6 +13,7 @@ protected:
     string email;
 
 public:
+    // Construtor
     Pessoa(int id, const string& nome, const string& email);
     virtual ~Pessoa();
 
@@ -22,6 +24,7 @@ public:
     void setNome(const string& novoNome);
     void setEmail(const string& novoEmail);
 
+    // Método virtual
     virtual void exibirDetalhes() const = 0;
 };
 

@@ -3,18 +3,15 @@
 #include <algorithm>
 using namespace std;
 
-// Construtor
-// (Inicializa os atributos)
+// Construtor que inicializa os atributos
 Aula::Aula(int id, const std::string& horario, int idInstrutor, int limiteAlunos)
     : id(id),
       horario(horario),
       idInstrutor(idInstrutor),
       limiteAlunos(limiteAlunos) {
-    // O vetor 'idsPraticantesInscritos' já começa vazio
 }
 
 // Destrutor
-// (Mesmo vazio, é importante defini-lo)
 Aula::~Aula() {}
 
 // Getters
@@ -36,7 +33,7 @@ bool Aula::isLotada() const {
 bool Aula::isPraticanteInscrito(int idPraticante) const {
     return find(idsPraticantesInscritos.begin(),
                 idsPraticantesInscritos.end(),
-                idPraticante) != idsPraticantesInscritos.end(); // <--- removido std::
+                idPraticante) != idsPraticantesInscritos.end();
 }
 
 bool Aula::inscreverPraticante(int idPraticante) {
@@ -46,7 +43,7 @@ bool Aula::inscreverPraticante(int idPraticante) {
     }
     if (isPraticanteInscrito(idPraticante)) {
         std::cout << "Info: Praticante (ID " << idPraticante << ") ja esta inscrito." << std::endl;
-        return true; // Já está inscrito, não é uma falha
+        return true;
     }
 
     idsPraticantesInscritos.push_back(idPraticante);
@@ -55,7 +52,6 @@ bool Aula::inscreverPraticante(int idPraticante) {
 }
 
 void Aula::cancelarInscricao(int idPraticante) {
-    // (Implementação futura - encontrar e remover o ID do vetor)
     std::cout << "Funcionalidade 'Cancelar Inscrição' ainda não implementada." << std::endl;
 }
 
