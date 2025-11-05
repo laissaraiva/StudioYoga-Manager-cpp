@@ -1,6 +1,7 @@
 #include "services/StudioManager.h"
 #include "models/HotYoga.h"
 #include "models/YogaPets.h"
+#include "models/YogaFlow.h"
 #include "data/DataManager.h"
 #include <algorithm>
 #include <cstdlib>
@@ -343,6 +344,11 @@ void StudioManager::cadastrarAula() {
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
+        case 3: {
+            novaAula = new YogaFlow(novoId, horario, idInstrutor, limiteAlunos);
+            std::cout << "Info: Criando aula YogaFlow.\n"; // Mensagem opcional
+            break;
+        }
         default:
             std::cout << "Erro: Tipo de aula invalido.\n";
             proximoIdAula--;
@@ -536,7 +542,7 @@ int StudioManager::selecionarTipoAulaMenu() {
         std::cout << "  Selecione o Tipo de Aula:\n";
         std::cout << "  1. Hot Yoga\n";
         std::cout << "  2. Yoga com Pets\n";
-        std::cout << " 3. Yoga Flow\n";
+        std::cout << "  3. Yoga Flow\n";
         std::cout << "  0. Cancelar\n";
         std::cout << "  > ";
         std::cin >> escolha;
