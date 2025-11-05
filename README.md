@@ -163,6 +163,8 @@ StudioYoga-Manager-cpp/
 ### Clone o repositório
 git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git
 
+```bash
+
 ### Entre na pasta
 cd StudioYoga-Manager-cpp
 mkdir build
