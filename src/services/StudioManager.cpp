@@ -536,6 +536,7 @@ int StudioManager::selecionarTipoAulaMenu() {
         std::cout << "  Selecione o Tipo de Aula:\n";
         std::cout << "  1. Hot Yoga\n";
         std::cout << "  2. Yoga com Pets\n";
+        std::cout << " 3. Yoga Flow\n";
         std::cout << "  0. Cancelar\n";
         std::cout << "  > ";
         std::cin >> escolha;
@@ -546,7 +547,7 @@ int StudioManager::selecionarTipoAulaMenu() {
             std::cout << "Entrada invalida. Tente novamente.\n";
         } else {
             limparBufferEntrada();
-            if (escolha >= 0 && escolha <= 2) {
+            if (escolha >= 0 && escolha <= 3) {
                 return escolha;
             }
             std::cout << "Opcao invalida. Tente novamente.\n";
