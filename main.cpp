@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "services/StudioManager.h"
+using namespace std; // <--- adicionado
 
 int main() {
     try {
@@ -12,11 +13,11 @@ int main() {
         // contém o "do-while" e o "switch-case" do seu exemplo.
         meuStudio.run();
 
-    } catch (const std::exception& e) {
-        std::cerr << "Ocorreu um erro fatal no sistema: " << e.what() << std::endl;
+    } catch (const exception& e) {
+        cerr << "Ocorreu um erro fatal no sistema: " << e.what() << endl;
         return 1;
     } catch (...) {
-        std::cerr << "Ocorreu um erro desconhecido e fatal." << std::endl;
+        cerr << "Ocorreu um erro desconhecido e fatal." << endl;
         return 1;
     }
 

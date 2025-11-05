@@ -1,75 +1,144 @@
 #include "services/StudioManager.h"
-#include "models/HotYoga.h"   // <--- Incluímos as classes filhas
+#include "models/HotYoga.h"
 #include "models/YogaPets.h"
-#include "models/YogaFlow.h"  // <--- 1. NOVO INCLUDE
+#include "models/YogaFlow.h"
+#include "data/DataManager.h"
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
 #include <iostream>
-#include <string>
 #include <limits>
-#include <fstream>   // <--- NOVO: Para leitura/escrita de arquivos
-#include <sstream>   // <--- NOVO: Para processar strings de linha
-#include <algorithm> // <--- NOVO: Para std::max
+#include <string>
+using namespace std;
 
-// --- NOVO: Constantes para os nomes dos arquivos ---
-const std::string ARQUIVO_PLANOS = "planOS.dat";
-const std::string ARQUIVO_INSTRUTORES = "instrutores.dat";
-const std::string ARQUIVO_PRATICANTES = "praticantes.dat";
-const std::string ARQUIVO_AULAS = "aulas.dat";
+// Helpers simples para validação local
+namespace {
+    bool isBlank(const string& s) {
+        return s.find_first_not_of(" \t\r\n") == string::npos;
+    }
+    bool isStringValida(const string& s) {
+        return !s.empty() && !isBlank(s);
+    }
+    bool isEmailValido(const string& s) {
+        auto at = s.find('@');
+        auto dot = s.find('.', at == string::npos ? 0 : at);
+        return at != string::npos && dot != string::npos && at < dot;
+    }
 
-// --- Construtor e Destrutor (MODIFICADOS) ---
-
-StudioManager::StudioManager()
-    : proximoIdPessoa(1), proximoIdAula(100), proximoIdPlano(1000) {
-    // AGORA o construtor carrega os dados
-    std::cout << "Iniciando Studio Manager..." << std::endl;
-    carregarDados();
-    std::cout << "Sistema pronto." << std::endl;
+    int encontrarProximoId(const vector<Praticante>& v) {
+        if (v.empty()) return 1;
+        auto maxIt = std::max_element(v.begin(), v.end(),
+            [](const Praticante& a, const Praticante& b) { return a.getId() < b.getId(); });
+        return maxIt->getId() + 1;
+    }
+    int encontrarProximoId(const vector<Instrutor>& v) {
+        if (v.empty()) return 1;
+        auto maxIt = std::max_element(v.begin(), v.end(),
+            [](const Instrutor& a, const Instrutor& b) { return a.getId() < b.getId(); });
+        return maxIt->getId() + 1;
+    }
+    int encontrarProximoId(const vector<Plano>& v) {
+        if (v.empty()) return 1;
+        auto maxIt = std::max_element(v.begin(), v.end(),
+            [](const Plano& a, const Plano& b) { return a.getId() < b.getId(); });
+        return maxIt->getId() + 1;
+    }
+    int encontrarProximoId(const vector<Aula*>& v) {
+        if (v.empty()) return 100;
+        auto maxIt = std::max_element(v.begin(), v.end(),
+            [](const Aula* a, const Aula* b) { return a->getId() < b->getId(); });
+        return (*maxIt)->getId() + 1;
+    }
 }
 
+// Construtor (carrega dados + modo demo)
+StudioManager::StudioManager() {
+    std::cout << "Iniciando Studio Manager..." << std::endl;
+
+    DataManager dm;
+    dm.carregarDados(this->planos,
+                     this->instrutores,
+                     this->praticantes,
+                     this->aulas,
+                     this->proximoIdPessoa,
+                     this->proximoIdAula,
+                     this->proximoIdPlano);
+
+    // Se algum contador não foi calculado pelo DataManager, calcula aqui como fallback
+    if (this->proximoIdPlano <= 0)   this->proximoIdPlano = encontrarProximoId(this->planos);
+    if (this->proximoIdPessoa <= 0) {
+        int proxPraticante = encontrarProximoId(this->praticantes);
+        int proxInstrutor  = encontrarProximoId(this->instrutores);
+        this->proximoIdPessoa = std::max(proxPraticante, proxInstrutor);
+    }
+    if (this->proximoIdAula <= 0)    this->proximoIdAula = encontrarProximoId(this->aulas);
+
+    std::cout << planos.size() << " planos, " << instrutores.size()
+              << " instrutores, " << praticantes.size() << " praticantes carregados.\n";
+
+    // MODO DEMONSTRAÇÃO
+    if (planos.empty() && instrutores.empty() && praticantes.empty()) {
+        std::cout << "\nInfo: Nenhum dado carregado. Criando dados ficticios para demonstracao...\n";
+
+        planos.emplace_back(proximoIdPlano++, "Plano Demo Mensal", 150.0);
+        planos.emplace_back(proximoIdPlano++, "Plano Demo Avulso", 60.0);
+
+        instrutores.emplace_back(proximoIdPessoa++, "Instrutora Demo", "demo@yoga.com", "Todas");
+        Instrutor* instrutorDemo = &instrutores.back();
+
+        praticantes.emplace_back(proximoIdPessoa++, "Aluno Ficticio 1", "aluno1@mail.com", planos[0].getId());
+        praticantes.emplace_back(proximoIdPessoa++, "Aluno Ficticio 2", "aluno2@mail.com", planos[1].getId());
+        Praticante* aluno1 = &praticantes[0];
+
+        Aula* aulaHot = new HotYoga(proximoIdAula++, "Segunda 18:00", instrutorDemo->getId(), 20, 40);
+        Aula* aulaPets = new YogaPets(proximoIdAula++, "Sabado 10:00", instrutorDemo->getId(), 15, "Cachorros de pequeno porte");
+
+        aulaHot->inscreverPraticante(aluno1->getId());
+        aluno1->inscreverEmAula(aulaHot->getId());
+
+        aulas.push_back(aulaHot);
+        aulas.push_back(aulaPets);
+
+        std::cout << "Info: Dados ficticios criados com sucesso!\n";
+    }
+}
+
+// Destrutor
 StudioManager::~StudioManager() {
-    // Destrutor OBRIGATÓRIO para salvar os dados e limpar a memória
-    std::cout << "Encerrando Studio Manager..." << std::endl;
+    std::cout << "\nEncerrando Studio Manager..." << std::endl;
 
-    // 1. Salva tudo antes de sair
-    salvarDados();
+    std::cout << "Salvando dados em arquivos .dat..." << std::endl;
+    DataManager dm;
+    dm.salvarDados(this->planos, this->instrutores, this->praticantes, this->aulas);
 
-    // 2. Deleta cada ponteiro de Aula* que foi criado com 'new'
-    std::cout << "Limpando memoria..." << std::endl;
+    std::cout << "Limpando ponteiros de aulas..." << std::endl;
     for (Aula* aula : aulas) {
         delete aula;
     }
-    aulas.clear(); // Limpa o vetor de ponteiros
 }
 
-// --- Ponto de Entrada do Menu ---
-
+// Ponto de Entrada do Menu
 void StudioManager::run() {
     int escolha = -1;
     do {
-        std::cout << "\n========= YOGA STUDIO MANAGEMENT (v2.0) =========\n";
-        std::cout << "1. Cadastrar Praticante\n";
-        std::cout << "2. Cadastrar Instrutor\n";
-        std::cout << "3. Cadastrar Plano\n";
-        std::cout << "4. Cadastrar Nova Aula (Hot, Pets, Flow)\n"; // (Texto já estava ok)
-        std::cout << "------------------------------------------\n";
-        std::cout << "5. Matricular Praticante em Aula\n";
-        std::cout << "------------------------------------------\n";
-        std::cout << "6. Listar Praticantes\n";
-        std::cout << "7. Listar Instrutores\n";
-        std::cout << "8. Listar Planos\n";
-        std::cout << "9. Listar Aulas (com detalhes)\n";
-        std::cout << "------------------------------------------\n";
-        std::cout << "0. Sair\n";
-        std::cout << "==========================================\n";
-        std::cout << "Digite sua escolha: ";
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+    imprimirMenuPrincipal();
+    std::cout << "Digite sua escolha: ";
 
         if (!(std::cin >> escolha)) {
-            std::cout << "Opcao invalida. Por favor, digite um numero.\n";
+            std::cout << "\nOpcao invalida. Por favor, digite um numero.\n";
             std::cin.clear();
+            limparBufferEntrada();
+            std::cout << "\nPressione Enter para continuar...";
             limparBufferEntrada();
             continue;
         }
 
-        limparBufferEntrada(); // Limpa o '\n' deixado pelo cin
+        limparBufferEntrada();
 
         try {
             switch (escolha) {
@@ -82,28 +151,72 @@ void StudioManager::run() {
                 case 7: listarInstrutores(); break;
                 case 8: listarPlanos(); break;
                 case 9: listarAulas(); break;
-                case 0: std::cout << "Saindo do sistema. Ate logo!\n"; break;
-                default: std::cout << "Opcao invalida. Tente novamente.\n";
+                case 10:
+                    gerarRelatorioHTML();
+                    std::cout << "\n>>> 'relatorio.html' gerado com sucesso! <<<\n";
+                    break;
+                case 11: atualizarPraticante(); break;
+                case 12: removerPraticante(); break;
+                case 0:
+                    std::cout << "Saindo do sistema. Ate logo!\n";
+                    break;
+                default:
+                    std::cout << "\nOpcao invalida. Tente novamente.\n";
             }
         } catch (const std::exception& e) {
             std::cerr << "ERRO: " << e.what() << std::endl;
         }
 
+        if (escolha != 0) {
+            std::cout << "\nPressione Enter para voltar ao menu...";
+            limparBufferEntrada();
+        }
+
     } while (escolha != 0);
 }
 
+// Exibe o menu principal completo (1 a 12 e 0)
+void StudioManager::imprimirMenuPrincipal() const {
+    std::cout << "\n========= YOGA STUDIO MANAGEMENT (v2.0) =========\n";
+    std::cout << "1. Cadastrar Praticante\n";
+    std::cout << "2. Cadastrar Instrutor\n";
+    std::cout << "3. Cadastrar Plano\n";
+    std::cout << "4. Cadastrar Nova Aula\n";
+    std::cout << "------------------------------------------\n";
+    std::cout << "5. Matricular Praticante em Aula\n";
+    std::cout << "------------------------------------------\n";
+    std::cout << "6. Listar Praticantes\n";
+    std::cout << "7. Listar Instrutores\n";
+    std::cout << "8. Listar Planos\n";
+    std::cout << "9. Listar Aulas (com detalhes)\n";
+    std::cout << "10. Gerar Relatorio HTML (Consultar)\n";
+    std::cout << "------------------------------------------\n";
+    std::cout << "11. Atualizar Praticante\n";
+    std::cout << "12. Remover Praticante\n";
+    std::cout << "------------------------------------------\n";
+    std::cout << "0. Sair e Salvar\n";
+    std::cout << "==========================================\n";
+}
 
-// --- Métodos de Lógica do Menu (Implementação) ---
-// (Estas funções permanecem IGUAIS, pois já manipulam os vetores em memória)
+// Métodos de Lógica (C)REATE
 
 void StudioManager::cadastrarPraticante() {
     std::string nome, email;
     int idPlano;
-    std::cout << "\n--- Cadastro de Praticante ---\n";
+    std::cout << "\n--- Cadastro de Praticante\n";
     std::cout << "Nome: ";
     std::getline(std::cin, nome);
     std::cout << "Email: ";
     std::getline(std::cin, email);
+
+    if (!isStringValida(nome)) {
+        std::cout << "Erro: O nome nao pode estar vazio. Cadastro cancelado.\n";
+        return;
+    }
+    if (!isEmailValido(email)) {
+        std::cout << "Erro: O formato do email e invalido. Cadastro cancelado.\n";
+        return;
+    }
 
     listarPlanos();
     std::cout << "Digite o ID do Plano: ";
@@ -116,14 +229,13 @@ void StudioManager::cadastrarPraticante() {
     }
 
     int novoId = proximoIdPessoa++;
-    // Assumindo construtor: Praticante(id, nome, email, idPlano)
     praticantes.emplace_back(novoId, nome, email, idPlano);
     std::cout << "Praticante '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
 }
 
 void StudioManager::cadastrarInstrutor() {
     std::string nome, email, especialidade;
-    std::cout << "\n--- Cadastro de Instrutor ---\n";
+    std::cout << "\n--- Cadastro de Instrutor\n";
     std::cout << "Nome: ";
     std::getline(std::cin, nome);
     std::cout << "Email: ";
@@ -131,8 +243,16 @@ void StudioManager::cadastrarInstrutor() {
     std::cout << "Especialidade: ";
     std::getline(std::cin, especialidade);
 
+    if (!isStringValida(nome) || !isStringValida(especialidade)) {
+        std::cout << "Erro: Nome e Especialidade nao podem estar vazios. Cadastro cancelado.\n";
+        return;
+    }
+    if (!isEmailValido(email)) {
+        std::cout << "Erro: O formato do email e invalido. Cadastro cancelado.\n";
+        return;
+    }
+
     int novoId = proximoIdPessoa++;
-    // Assumindo construtor: Instrutor(id, nome, email, especialidade)
     instrutores.emplace_back(novoId, nome, email, especialidade);
     std::cout << "Instrutor '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
 }
@@ -140,21 +260,29 @@ void StudioManager::cadastrarInstrutor() {
 void StudioManager::cadastrarPlano() {
     std::string nome;
     double preco;
-    std::cout << "\n--- Cadastro de Plano ---\n";
+    std::cout << "\n--- Cadastro de Plano\n";
     std::cout << "Nome (Ex: Mensal, Trimestral): ";
     std::getline(std::cin, nome);
     std::cout << "Preco (Ex: 99.90): ";
     std::cin >> preco;
     limparBufferEntrada();
 
+    if (!isStringValida(nome)) {
+        std::cout << "Erro: O nome do plano nao pode estar vazio. Cadastro cancelado.\n";
+        return;
+    }
+    if (preco <= 0) {
+        std::cout << "Erro: O preco deve ser um valor positivo. Cadastro cancelado.\n";
+        return;
+    }
+
     int novoId = proximoIdPlano++;
-    // Assumindo construtor: Plano(id, nome, preco)
     planos.emplace_back(novoId, nome, preco);
     std::cout << "Plano '" << nome << "' cadastrado com sucesso! (ID: " << novoId << ")\n";
 }
 
 void StudioManager::cadastrarAula() {
-    std::cout << "\n--- Cadastro de Nova Aula ---\n";
+    std::cout << "\n--- Cadastro de Nova Aula\n";
     if (instrutores.empty()) {
         std::cout << "Erro: Cadastre um instrutor primeiro.\n";
         return;
@@ -165,12 +293,20 @@ void StudioManager::cadastrarAula() {
 
     std::string horario;
     int limiteAlunos;
-    std::cout << "Horario (Ex: Segunda 18:00): ";
+    std::cout << "Horario (Ex: Seg 18:00): ";
     std::getline(std::cin, horario);
-
     std::cout << "Limite de Alunos: ";
     std::cin >> limiteAlunos;
     limparBufferEntrada();
+
+    if (!isStringValida(horario)) {
+        std::cout << "Erro: O horario nao pode estar vazio. Cadastro cancelado.\n";
+        return;
+    }
+    if (limiteAlunos <= 0) {
+        std::cout << "Erro: O limite de alunos deve ser positivo. Cadastro cancelado.\n";
+        return;
+    }
 
     listarInstrutores();
     std::cout << "Digite o ID do Instrutor: ";
@@ -188,32 +324,34 @@ void StudioManager::cadastrarAula() {
     int novoId = proximoIdAula++;
 
     switch (tipoAula) {
-        case 1: { // Hot Yoga
+        case 1: {
             std::cout << "Digite a Temperatura da Sala (em C): ";
             int temp;
             std::cin >> temp;
             limparBufferEntrada();
-            // Assumindo construtor: HotYoga(id, horario, idInstrutor, limite, temp)
             novaAula = new HotYoga(novoId, horario, idInstrutor, limiteAlunos, temp);
             break;
         }
-        case 2: { // Yoga com Pets
-            std::cout << "Tipo de Pet Permitido (Ex: Gatos, Cachorros dócil): ";
+        case 2: {
+            std::cout << "Tipo de Pet Permitido (Ex: Gatos, Cachorros docil): ";
             std::string tipoPet;
             std::getline(std::cin, tipoPet);
-            // Assumindo construtor: YogaPets(id, horario, idInstrutor, limite, tipoPet)
+            if (!isStringValida(tipoPet)) {
+                std::cout << "Erro: O tipo de pet nao pode estar vazio. Cadastro cancelado.\n";
+                proximoIdAula--;
+                return;
+            }
             novaAula = new YogaPets(novoId, horario, idInstrutor, limiteAlunos, tipoPet);
             break;
         }
-        // --- 2. NOVO CASE ADICIONADO ---
-        case 3: { // Yoga Flow
-            // Esta aula não pede dados extras, então criamos direto
+        case 3: {
             novaAula = new YogaFlow(novoId, horario, idInstrutor, limiteAlunos);
-            std::cout << "Aula de Yoga Flow cadastrada.\n";
+            std::cout << "Info: Criando aula YogaFlow.\n"; // Mensagem opcional
             break;
         }
         default:
             std::cout << "Erro: Tipo de aula invalido.\n";
+            proximoIdAula--;
             return;
     }
 
@@ -224,7 +362,7 @@ void StudioManager::cadastrarAula() {
 }
 
 void StudioManager::matricularPraticanteEmAula() {
-    std::cout << "\n--- Matricular Praticante em Aula ---\n";
+    std::cout << "\n--- Matricular Praticante em Aula\n";
     if (praticantes.empty()) {
         std::cout << "Erro: Nenhum praticante cadastrado.\n"; return;
     }
@@ -260,280 +398,151 @@ void StudioManager::matricularPraticanteEmAula() {
     }
 }
 
-// --- Métodos de Listagem ---
-// (Estas funções permanecem IGUAIS)
+// Métodos de Lógica (R)EAD
 
 void StudioManager::listarPraticantes() {
-    std::cout << "\n--- Lista de Praticantes ---\n";
-    if (praticantes.empty()) {
-        std::cout << "Nenhum praticante cadastrado.\n"; return;
-    }
-    for (const auto& p : praticantes) {
-        p.exibirDetalhes(); // Assumindo que Praticante tem exibirDetalhes()
-    }
+    std::cout << "\n--- Lista de Praticantes\n";
+    if (praticantes.empty()) { std::cout << "Nenhum praticante cadastrado.\n"; return; }
+    for (const auto& p : praticantes) p.exibirDetalhes();
 }
 
 void StudioManager::listarInstrutores() {
-    std::cout << "\n--- Lista de Instrutores ---\n";
-    if (instrutores.empty()) {
-        std::cout << "Nenhum instrutor cadastrado.\n"; return;
-    }
-    for (const auto& i : instrutores) {
-        i.exibirDetalhes(); // Assumindo que Instrutor tem exibirDetalhes()
-    }
+    std::cout << "\n--- Lista de Instrutores\n";
+    if (instrutores.empty()) { std::cout << "Nenhum instrutor cadastrado.\n"; return; }
+    for (const auto& i : instrutores) i.exibirDetalhes();
 }
 
 void StudioManager::listarPlanos() {
-    std::cout << "\n--- Lista de Planos ---\n";
-    if (planos.empty()) {
-        std::cout << "Nenhum plano cadastrado.\n"; return;
-    }
-    for (const auto& p : planos) {
-        p.exibirDetalhes(); // Assumindo que Plano tem exibirDetalhes()
-    }
+    std::cout << "\n--- Lista de Planos\n";
+    if (planos.empty()) { std::cout << "Nenhum plano cadastrado.\n"; return; }
+    for (const auto& p : planos) p.exibirDetalhes();
 }
 
 void StudioManager::listarAulas() {
-    std::cout << "\n--- Lista de Aulas --- (Total: " << aulas.size() << ")\n";
-    if (aulas.empty()) {
-        std::cout << "Nenhuma aula cadastrada.\n"; return;
-    }
+    std::cout << "\n--- Lista de Aulas (Total: " << aulas.size() << ")\n";
+    if (aulas.empty()) { std::cout << "Nenhuma aula cadastrada.\n"; return; }
     for (const Aula* aulaPtr : aulas) {
-        aulaPtr->exibirDetalhes(); // Polimorfismo
+        aulaPtr->exibirDetalhes();
         std::cout << "---------------------------------\n";
     }
 }
 
+// Update/Delete
 
-// ----- NOVOS MÉTODOS DE PERSISTÊNCIA (IMPLEMENTAÇÃO) -----
+void StudioManager::atualizarPraticante() {
+    std::cout << "\n--- Atualizar Praticante\n";
+    if (praticantes.empty()) { std::cout << "Erro: Nenhum praticante cadastrado.\n"; return; }
 
-void StudioManager::salvarDados() {
-    std::ofstream arquivo;
-    std::cout << "Salvando dados nos arquivos .dat..." << std::endl;
+    listarPraticantes();
+    std::cout << "Digite o ID do Praticante que deseja atualizar: ";
+    int id;
+    std::cin >> id;
+    limparBufferEntrada();
 
-    // 1. Salvar Planos
-    arquivo.open(ARQUIVO_PLANOS);
-    if (arquivo.is_open()) {
-        for (const auto& plano : planos) {
-            // Formato: ID,Nome,Preco
-            arquivo << plano.getId() << "," << plano.getNome() << "," << plano.getPreco() << "\n";
-        }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PLANOS << std::endl;
+    Praticante* praticante = findPraticanteById(id);
+    if (praticante == nullptr) {
+        std::cout << "Erro: Praticante com ID " << id << " nao encontrado.\n";
+        return;
     }
 
-    // 2. Salvar Instrutores
-    arquivo.open(ARQUIVO_INSTRUTORES);
-    if (arquivo.is_open()) {
-        for (const auto& instrutor : instrutores) {
-            // Formato: ID,Nome,Email,Especialidade
-            arquivo << instrutor.getId() << "," << instrutor.getNome() << ","
-                    << instrutor.getEmail() << "," << instrutor.getEspecialidade() << "\n";
-        }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_INSTRUTORES << std::endl;
-    }
+    int escolha = 0;
+    std::cout << "Praticante encontrado: " << praticante->getNome() << "\n";
+    std::cout << "O que deseja atualizar?\n";
+    std::cout << "1. Nome\n2. Email\n3. Plano\n0. Cancelar\n> ";
+    std::cin >> escolha;
+    limparBufferEntrada();
 
-    // 3. Salvar Praticantes
-    arquivo.open(ARQUIVO_PRATICANTES);
-    if (arquivo.is_open()) {
-        for (const auto& p : praticantes) {
-            // Formato: ID,Nome,Email,ID_Plano
-            arquivo << p.getId() << "," << p.getNome() << ","
-                    << p.getEmail() << "," << p.getIdPlano(); // Assumindo getIdPlano()
-            for (int idAula : p.getAulasInscritas()) { // Assumindo getAulasInscritas()
-                arquivo << "," << idAula;
+    switch (escolha) {
+        case 1: {
+            std::string novoNome;
+            std::cout << "Digite o novo Nome: ";
+            std::getline(std::cin, novoNome);
+            if (isStringValida(novoNome)) {
+                praticante->setNome(novoNome);
+                std::cout << "Nome atualizado com sucesso!\n";
+            } else {
+                std::cout << "Erro: Nome invalido.\n";
             }
-            arquivo << "\n";
+            break;
         }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PRATICANTES << std::endl;
-    }
-
-    // 4. Salvar Aulas (Polimorfismo)
-    arquivo.open(ARQUIVO_AULAS);
-    if (arquivo.is_open()) {
-        for (const Aula* aula : aulas) {
-            // Formato: TIPO,ID,Horario,Limite,ID_Instrutor
-            arquivo << aula->getTipo() << "," << aula->getId() << ","
-                    << aula->getHorario() << "," << aula->getLimiteAlunos() << ","
-                    << aula->getIdInstrutor(); // Assumindo getIdInstrutor()
-
-            // Salva dados extras das classes filhas
-            if (aula->getTipo() == "HotYoga") {
-                const HotYoga* hy = dynamic_cast<const HotYoga*>(aula);
-                if (hy) arquivo << "," << hy->getTemperatura();
-            } else if (aula->getTipo() == "YogaPets") {
-                const YogaPets* yp = dynamic_cast<const YogaPets*>(aula);
-                if (yp) arquivo << "," << yp->getTipoPet();
+        case 2: {
+            std::string novoEmail;
+            std::cout << "Digite o novo Email: ";
+            std::getline(std::cin, novoEmail);
+            if (isEmailValido(novoEmail)) {
+                praticante->setEmail(novoEmail);
+                std::cout << "Email atualizado com sucesso!\n";
+            } else {
+                std::cout << "Erro: Email invalido.\n";
             }
-            // (Nao e necessario um 'else if' para YogaFlow, pois ela nao tem dados extras)
-
-            for (int idPraticante : aula->getIdsPraticantesInscritos()) { // Assumindo getIdsPraticantesInscritos()
-                arquivo << "," << idPraticante;
-            }
-            arquivo << "\n";
+            break;
         }
-        arquivo.close();
-    } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_AULAS << std::endl;
+        case 3: {
+            listarPlanos();
+            std::cout << "Digite o ID do novo Plano: ";
+            int idPlano;
+            std::cin >> idPlano;
+            limparBufferEntrada();
+            if (findPlanoById(idPlano) != nullptr) {
+                praticante->setIdPlano(idPlano);
+                std::cout << "Plano atualizado com sucesso!\n";
+            } else {
+                std::cout << "Erro: Plano nao encontrado.\n";
+            }
+            break;
+        }
+        case 0:
+            std::cout << "Atualizacao cancelada.\n";
+            break;
+        default:
+            std::cout << "Opcao invalida.\n";
+            break;
     }
 }
 
-void StudioManager::carregarDados() {
-    std::ifstream arquivo;
-    std::string linha;
-    std::cout << "Carregando dados dos arquivos .dat..." << std::endl;
+void StudioManager::removerPraticante() {
+    std::cout << "\n--- Remover Praticante\n";
+    if (praticantes.empty()) { std::cout << "Erro: Nenhum praticante cadastrado.\n"; return; }
 
-    // --- 1. Carregar Planos ---
-    int maxPlanoId = 0;
-    arquivo.open(ARQUIVO_PLANOS);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string idStr, nome, precoStr;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, precoStr, '\n');
-            try {
-                int id = std::stoi(idStr);
-                double preco = std::stod(precoStr);
-                planos.emplace_back(id, nome, preco);
-                maxPlanoId = std::max(maxPlanoId, id);
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de plano: " << linha << std::endl;
-            }
-        }
-        arquivo.close();
-        proximoIdPlano = maxPlanoId + 1;
-        std::cout << "Carregados " << planos.size() << " planos." << std::endl;
+    listarPraticantes();
+    std::cout << "Digite o ID do Praticante que deseja REMOVER (acao irreversivel!): ";
+    int id;
+    std::cin >> id;
+    limparBufferEntrada();
+
+    auto iter = std::find_if(praticantes.begin(), praticantes.end(), [id](const Praticante& p) {
+        return p.getId() == id;
+    });
+
+    if (iter == praticantes.end()) {
+        std::cout << "Erro: Praticante com ID " << id << " nao encontrado.\n";
+        return;
     }
 
-    // --- 2. Carregar Instrutores ---
-    int maxPessoaId = 0;
-    arquivo.open(ARQUIVO_INSTRUTORES);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string idStr, nome, email, especialidade;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, email, ',');
-            std::getline(ss, especialidade, '\n');
-            try {
-                int id = std::stoi(idStr);
-                instrutores.emplace_back(id, nome, email, especialidade);
-                maxPessoaId = std::max(maxPessoaId, id);
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de instrutor: " << linha << std::endl;
-            }
-        }
-        arquivo.close();
-        std::cout << "Carregados " << instrutores.size() << " instrutores." << std::endl;
-    }
+    std::string nomePraticante = iter->getNome();
+    char confirmacao;
+    std::cout << "Tem certeza que deseja remover '" << nomePraticante << "'? (s/n): ";
+    std::cin >> confirmacao;
+    limparBufferEntrada();
 
-    // --- 3. Carregar Praticantes ---
-    arquivo.open(ARQUIVO_PRATICANTES);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string idStr, nome, email, idPlanoStr, idAulaStr;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, email, ',');
-            std::getline(ss, idPlanoStr, ',');
-            try {
-                int id = std::stoi(idStr);
-                int idPlano = std::stoi(idPlanoStr);
-                praticantes.emplace_back(id, nome, email, idPlano);
-                maxPessoaId = std::max(maxPessoaId, id);
-
-                Praticante* p = findPraticanteById(id);
-                while (std::getline(ss, idAulaStr, ',')) {
-                    p->inscreverEmAula(std::stoi(idAulaStr));
-                }
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de praticante: " << linha << std::endl;
-            }
-        }
-        arquivo.close();
-        std::cout << "Carregados " << praticantes.size() << " praticantes." << std::endl;
-    }
-    proximoIdPessoa = maxPessoaId + 1;
-
-    // --- 4. Carregar Aulas (DEVE SER O ÚLTIMO) ---
-    int maxAulaId = 0;
-    arquivo.open(ARQUIVO_AULAS);
-    if (arquivo.is_open()) {
-        while (std::getline(arquivo, linha)) {
-            std::stringstream ss(linha);
-            std::string tipo, idStr, horario, limiteStr, idInstrutorStr, extra, idPraticanteStr;
-
-            std::getline(ss, tipo, ',');
-            std::getline(ss, idStr, ',');
-            std::getline(ss, horario, ',');
-            std::getline(ss, limiteStr, ',');
-            std::getline(ss, idInstrutorStr, ',');
-
-            try {
-                int id = std::stoi(idStr);
-                int limite = std::stoi(limiteStr);
-                int idInstrutor = std::stoi(idInstrutorStr);
-
-                Instrutor* instrutor = findInstrutorById(idInstrutor);
-                if (instrutor == nullptr) {
-                    std::cerr << "Instrutor ID " << idInstrutor << " nao encontrado. Pulando aula " << id << ".\n";
-                    continue;
-                }
-
-                Aula* novaAula = nullptr;
-                if (tipo == "HotYoga") {
-                    std::getline(ss, extra, ','); // Temperatura
-                    novaAula = new HotYoga(id, horario, idInstrutor, limite, std::stoi(extra));
-                } else if (tipo == "YogaPets") {
-                    std::getline(ss, extra, ','); // Tipo de Pet
-                    novaAula = new YogaPets(id, horario, idInstrutor, limite, extra);
-                // --- 3. NOVO ELSE IF ADICIONADO ---
-                } else if (tipo == "YogaFlow") {
-                    // Nao le 'extra', cria direto
-                    novaAula = new YogaFlow(id, horario, idInstrutor, limite);
-                } else {
-                    std::cerr << "Tipo de aula desconhecido: " << tipo << "\n";
-                    continue;
-                }
-
-                while (std::getline(ss, idPraticanteStr, ',')) {
-                    novaAula->inscreverPraticante(std::stoi(idPraticanteStr));
-                }
-
-                aulas.push_back(novaAula);
-                instrutor->adicionarAula(id); // Recria o link no instrutor
-                maxAulaId = std::max(maxAulaId, id);
-
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de aula: " << linha << " (" << e.what() << ")" << std::endl;
-            }
-        }
-        arquivo.close();
-        proximoIdAula = maxAulaId + 1;
-        std::cout << "Carregadas " << aulas.size() << " aulas." << std::endl;
+    if (confirmacao == 's' || confirmacao == 'S') {
+        praticantes.erase(iter);
+        // TODO: Remover este id de todas as aulas
+        std::cout << "Praticante '" << nomePraticante << "' removido com sucesso.\n";
+    } else {
+        std::cout << "Remocao cancelada.\n";
     }
 }
 
+// Auxiliares
 
-// --- Métodos Auxiliares (Finders e Limpeza) ---
-
-// --- 4. FUNÇÃO ATUALIZADA ---
 int StudioManager::selecionarTipoAulaMenu() {
     int escolha = 0;
     while (true) {
         std::cout << "  Selecione o Tipo de Aula:\n";
         std::cout << "  1. Hot Yoga\n";
         std::cout << "  2. Yoga com Pets\n";
-        std::cout << "  3. Yoga Flow\n"; // <--- ADICIONADO
+        std::cout << "  3. Yoga Flow\n";
         std::cout << "  0. Cancelar\n";
         std::cout << "  > ";
         std::cin >> escolha;
@@ -544,43 +553,108 @@ int StudioManager::selecionarTipoAulaMenu() {
             std::cout << "Entrada invalida. Tente novamente.\n";
         } else {
             limparBufferEntrada();
-            if (escolha >= 0 && escolha <= 3) { // <--- LIMITE ATUALIZADO DE 2 PARA 3
+            if (escolha >= 0 && escolha <= 3) {
                 return escolha;
             }
-            std::cout << "Opção invalida. Tente novamente.\n";
+            std::cout << "Opcao invalida. Tente novamente.\n";
         }
     }
 }
 
 void StudioManager::limparBufferEntrada() {
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // <--- removido std::
 }
 
-// Finders (Iteram nos vetores para encontrar por ID)
 Praticante* StudioManager::findPraticanteById(int id) {
-    for (auto& p : praticantes) {
-        if (p.getId() == id) return &p;
-    }
+    for (auto& p : praticantes) if (p.getId() == id) return &p;
     return nullptr;
 }
-
 Instrutor* StudioManager::findInstrutorById(int id) {
-    for (auto& i : instrutores) {
-        if (i.getId() == id) return &i;
-    }
+    for (auto& i : instrutores) if (i.getId() == id) return &i;
     return nullptr;
 }
-
 Aula* StudioManager::findAulaById(int id) {
-    for (auto* a : aulas) { // Note o ponteiro
-        if (a->getId() == id) return a;
-    }
+    for (auto* a : aulas) if (a->getId() == id) return a;
+    return nullptr;
+}
+Plano* StudioManager::findPlanoById(int id) {
+    for (auto& p : planos) if (p.getId() == id) return &p;
     return nullptr;
 }
 
-Plano* StudioManager::findPlanoById(int id) {
-    for (auto& p : planos) {
-        if (p.getId() == id) return &p;
+// Relatório HTML
+void StudioManager::gerarRelatorioHTML() {
+    std::ofstream relatorio("relatorio.html", std::ios::trunc);
+    if (!relatorio.is_open()) {
+        std::cout << "Erro ao tentar criar o arquivo relatorio.html\n";
+        return;
     }
-    return nullptr;
+
+    relatorio << "<!DOCTYPE html>\n<html lang=\"pt-br\">\n<head>\n";
+    relatorio << "<meta charset=\"UTF-8\">\n";
+    relatorio << "<title>Relatorio - Studio Yoga</title>\n";
+    relatorio << "<style>\n";
+    relatorio << "  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }\n";
+    relatorio << "  .container { max-width: 800px; margin: auto; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px 40px; }\n";
+    relatorio << "  h1 { color: #2c3e50; text-align: center; border-bottom: 2px solid #DAA520; padding-bottom: 10px; }\n";
+    relatorio << "  h2 { color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px; margin-top: 30px; }\n";
+    relatorio << "  .card { border: 1px solid #ddd; border-radius: 8px; padding: 10px 20px; margin-bottom: 15px; }\n";
+    relatorio << "  .card p { margin: 8px 0; }\n";
+    relatorio << "  .card strong { color: #555; min-width: 120px; display: inline-block; }\n";
+    relatorio << "  footer { text-align: center; margin-top: 40px; color: #888; font-size: 0.9em; }\n";
+    relatorio << "</style>\n</head>\n<body>\n<div class=\"container\">\n";
+    relatorio << "<h1>Relatorio do Sistema - Studio Yoga Manager</h1>\n";
+
+    relatorio << "<h2>Praticantes Cadastrados (" << praticantes.size() << ")</h2>\n";
+    for (const auto& p : praticantes) {
+        relatorio << "<div class=\"card\">\n";
+        relatorio << "  <p><strong>Nome:</strong> " << p.getNome() << "</p>\n";
+        relatorio << "  <p><strong>Email:</strong> " << p.getEmail() << "</p>\n";
+        relatorio << "  <p><strong>ID do Plano:</strong> " << p.getIdPlano() << "</p>\n";
+        relatorio << "</div>\n";
+    }
+
+    relatorio << "<h2>Instrutores Cadastrados (" << instrutores.size() << ")</h2>\n";
+    for (const auto& i : instrutores) {
+        relatorio << "<div class=\"card\">\n";
+        relatorio << "  <p><strong>Nome:</strong> " << i.getNome() << "</p>\n";
+        relatorio << "  <p><strong>Email:</strong> " << i.getEmail() << "</p>\n";
+        relatorio << "  <p><strong>Especialidade:</strong> " << i.getEspecialidade() << "</p>\n";
+        relatorio << "</div>\n";
+    }
+
+    relatorio << "<h2>Planos Disponiveis (" << planos.size() << ")</h2>\n";
+    for (const auto& pl : planos) {
+        relatorio << "<div class=\"card\">\n";
+        relatorio << "  <p><strong>Nome:</strong> " << pl.getNome() << "</p>\n";
+        relatorio << "  <p><strong>Preco:</strong> R$ " << pl.getPreco() << "</p>\n";
+        relatorio << "  <p><strong>ID:</strong> " << pl.getId() << "</p>\n";
+        relatorio << "</div>\n";
+    }
+
+    relatorio << "<h2>Aulas Agendadas (" << aulas.size() << ")</h2>\n";
+    if (aulas.empty()) {
+        relatorio << "<p>Nenhuma aula agendada.</p>\n";
+    }
+    for (const Aula* a : aulas) {
+        relatorio << "<div class=\"card\">\n";
+        relatorio << "  <p><strong>Tipo de Aula:</strong> " << a->getTipo() << "</p>\n";
+        relatorio << "  <p><strong>ID da Aula:</strong> " << a->getId() << "</p>\n";
+        relatorio << "  <p><strong>Horario:</strong> " << a->getHorario() << "</p>\n";
+        relatorio << "  <p><strong>Vagas:</strong> " << a->getVagasDisponiveis() << " / " << a->getLimiteAlunos() << "</p>\n";
+
+        const HotYoga* hot = dynamic_cast<const HotYoga*>(a);
+        if (hot) {
+            relatorio << "  <p><strong>Temperatura:</strong> " << hot->getTemperatura() << "C</p>\n";
+        }
+        const YogaPets* pets = dynamic_cast<const YogaPets*>(a);
+        if (pets) {
+            relatorio << "  <p><strong>Pets:</strong> " << pets->getTipoPet() << "</p>\n";
+        }
+        relatorio << "</div>\n";
+    }
+
+    relatorio << "<footer><p>Relatorio gerado pelo StudioYogaManager C++</p></footer>\n";
+    relatorio << "</div>\n</body>\n</html>\n";
+    relatorio.close();
 }

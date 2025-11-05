@@ -1,8 +1,9 @@
-#include "models/Aula.h" // <--- Inclui o header correspondente
+#include "models/Aula.h"
 #include <iostream>
-#include <algorithm> // Para std::find
+#include <algorithm>
+using namespace std;
 
-// --- Construtor ---
+// Construtor
 // (Inicializa os atributos)
 Aula::Aula(int id, const std::string& horario, int idInstrutor, int limiteAlunos)
     : id(id),
@@ -12,11 +13,11 @@ Aula::Aula(int id, const std::string& horario, int idInstrutor, int limiteAlunos
     // O vetor 'idsPraticantesInscritos' já começa vazio
 }
 
-// --- Destrutor ---
+// Destrutor
 // (Mesmo vazio, é importante defini-lo)
 Aula::~Aula() {}
 
-// --- Getters ---
+// Getters
 int Aula::getId() const { return id; }
 std::string Aula::getHorario() const { return horario; }
 int Aula::getLimiteAlunos() const { return limiteAlunos; }
@@ -27,16 +28,15 @@ int Aula::getVagasDisponiveis() const {
     return limiteAlunos - idsPraticantesInscritos.size();
 }
 
-// --- Lógica de Negócios Comum ---
+// Lógica de Negócios Comum
 bool Aula::isLotada() const {
     return idsPraticantesInscritos.size() >= limiteAlunos;
 }
 
 bool Aula::isPraticanteInscrito(int idPraticante) const {
-    // Procura o ID no vetor
-    return std::find(idsPraticantesInscritos.begin(),
-                     idsPraticantesInscritos.end(),
-                     idPraticante) != idsPraticantesInscritos.end();
+    return find(idsPraticantesInscritos.begin(),
+                idsPraticantesInscritos.end(),
+                idPraticante) != idsPraticantesInscritos.end(); // <--- removido std::
 }
 
 bool Aula::inscreverPraticante(int idPraticante) {
@@ -60,9 +60,8 @@ void Aula::cancelarInscricao(int idPraticante) {
 }
 
 void Aula::exibirDetalhes() const {
-    // ----- LINHA CORRIGIDA -----
-    std::cout << "  [Aula ID: " << id << "] - " << getTipo() << std::endl;
-    std::cout << "  Horario: " << horario << std::endl;
-    std::cout << "  Instrutor ID: " << idInstrutor << std::endl;
-    std::cout << "  Vagas: " << idsPraticantesInscritos.size() << " / " << limiteAlunos << std::endl;
+    cout << "  [Aula ID: " << id << "] - " << getTipo() << endl;
+    cout << "  Horario: " << horario << endl;
+    cout << "  Instrutor ID: " << idInstrutor << endl;
+    cout << "  Vagas: " << idsPraticantesInscritos.size() << " / " << limiteAlunos << endl;
 }
