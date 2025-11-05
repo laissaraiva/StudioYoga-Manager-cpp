@@ -1,134 +1,67 @@
-#include "DataManager.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <algorithm> // Para std::max
-
-// --- Métodos Auxiliares de 'find' ---
-// Para o carregarDados funcionar, ele precisa dos 'finders'.
-// A forma mais fácil de refatorar é o DataManager pedir
-// os vetores e fazer a busca neles.
-// Vamos fazer o carregarDados ser um pouco mais "burro"
-// e o StudioManager mais inteligente.
-
-// ...
-// OK, CHEGA DE PENSAR. A forma MAIS SIMPLES é:
-// O DataManager NÃO PRECISA DOS FINDERS. O carregarDados
-// já tem toda a lógica de recriar os objetos.
-// O único problema é que carregarAulas precisa do findInstrutorById.
-// E carregarPraticantes precisa do findPraticanteById.
-//
-// A SUA LÓGICA DE CARREGAMENTO É DEPENDENTE DEMAIS.
-// Vou fazer a alteração que *funciona* com o mínimo de dor.
-// O StudioManager VAI CONTINUAR com os finders.
-// O DataManager VAI RECEBER o StudioManager como amigo ou
-// por referência.
-//
-// NÃO. VAMOS SÓ COPIAR E COLAR.
-
-void DataManager::salvarDados(
-    const std::vector<Plano>& planos,
-    const std::vector<Instrutor>& instrutores,
-    const std::vector<Praticante>& praticantes,
-    const std::vector<Aula*>& aulas)
-{
-    // ----- COLE AQUI EXATAMENTE A SUA FUNÇÃO salvarDados() -----
-    // A única mudança é que as variáveis (planos, instrutores, etc.)
-    // já são parâmetros, então você não precisa usar "this->"
-
-    std::ofstream arquivo;
-    std::cout << "Salvando dados nos arquivos .dat..." << std::endl;
-
-    // 1. Salvar Planos
-    arquivo.open(ARQUIVO_PLANOS);
-    if (arquivo.is_open()) {
-        for (const auto& plano : planos) {
-            arquivo << plano.getId() << "," << plano.getNome() << "," << plano.getPreco() << "\n";
-        }
-        arquivo.close();
-    } // ... (resto do seu salvarPlanos) ...
-    
-    // (Resto do código de salvar colado aqui)
-    // ...
-    // ...
-    std::cout << "Dados salvos com sucesso." << std::endl; // Mensagem de exemplo
-}
-
-// ESTA É A PARTE MAIS DIFÍCIL. O SEU carregarDados
-// CHAMA findInstrutorById e findPraticanteById, que ESTÃO no
-// StudioManager. Isso é um acoplamento alto.
-//
-// A forma de quebrar isso é:
-// 1. Carregar Planos
-// 2. Carregar Instrutores
-// 3. Carregar Praticantes
-// 4. Carregar Aulas
-// 5. DEPOIS, num SEGUNDO passo, o StudioManager (que tem os finders)
-//    iria "ligar" as aulas aos instrutores.
-//
-// Isso é MUITA mudança. Vamos manter sua lógica.
-// Vamos fazer o carregarDados do DataManager precisar dos vetores
-// para fazer a busca ele mesmo.
-
-// ---- CÓDIGO DO DataManager.cpp ----
-
-#include "DataManager.h"
+#include "data/DataManager.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include <limits> // Necessário para limpar o buffer
+using namespace std;
 
-// Esta classe agora precisa dos includes dos modelos
+#include "models/Plano.h"
+#include "models/Instrutor.h"
+#include "models/Praticante.h"
+#include "models/Aula.h"
 #include "models/HotYoga.h"
 #include "models/YogaPets.h"
 #include "models/YogaFlow.h"
 
-//
-// O SEGUINTE É UMA CÓPIA 1:1 DO SEU CÓDIGO.
-// A ÚNICA MUDANÇA É QUE OS VETORES E IDs SÃO
-// PASSADOS COMO PARÂMETROS.
-//
+namespace {
+    Praticante* findPraticanteById(std::vector<Praticante>& praticantes, int id) {
+        for (auto& p : praticantes) { if (p.getId() == id) return &p; }
+        return nullptr;
+    }
+    Instrutor* findInstrutorById(std::vector<Instrutor>& instrutores, int id) {
+        for (auto& i : instrutores) { if (i.getId() == id) return &i; }
+        return nullptr;
+    }
+}
 
 void DataManager::salvarDados(
-    const std::vector<Plano>& planos,
-    const std::vector<Instrutor>& instrutores,
-    const std::vector<Praticante>& praticantes,
-    const std::vector<Aula*>& aulas)
+    const vector<Plano>& planos,
+    const vector<Instrutor>& instrutores,
+    const vector<Praticante>& praticantes,
+    const vector<Aula*>& aulas)
 {
-    // --- INÍCIO DA CÓPIA do seu salvarDados() ---
-    std::ofstream arquivo;
-    std::cout << "Salvando dados nos arquivos .dat..." << std::endl;
+    ofstream arquivo;
+    cout << "Salvando dados nos arquivos .dat..." << endl;
 
-    // 1. Salvar Planos
-    arquivo.open(ARQUIVO_PLANOS);
+    // 1) Planos
+    arquivo.open(ARQUIVO_PLANOS, std::ios::trunc);
     if (arquivo.is_open()) {
         for (const auto& plano : planos) {
             arquivo << plano.getId() << "," << plano.getNome() << "," << plano.getPreco() << "\n";
         }
         arquivo.close();
     } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PLANOS << std::endl;
+        cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PLANOS << endl;
     }
 
-    // 2. Salvar Instrutores
-    arquivo.open(ARQUIVO_INSTRUTORES);
+    // 2) Instrutores
+    arquivo.open(ARQUIVO_INSTRUTORES, std::ios::trunc);
     if (arquivo.is_open()) {
         for (const auto& instrutor : instrutores) {
             arquivo << instrutor.getId() << "," << instrutor.getNome() << ","
-                      << instrutor.getEmail() << "," << instrutor.getEspecialidade() << "\n";
+                    << instrutor.getEmail() << "," << instrutor.getEspecialidade() << "\n";
         }
         arquivo.close();
     } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_INSTRUTORES << std::endl;
+        cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_INSTRUTORES << endl;
     }
 
-    // 3. Salvar Praticantes
-    arquivo.open(ARQUIVO_PRATICANTES);
+    // 3) Praticantes
+    arquivo.open(ARQUIVO_PRATICANTES, std::ios::trunc);
     if (arquivo.is_open()) {
         for (const auto& p : praticantes) {
             arquivo << p.getId() << "," << p.getNome() << ","
-                      << p.getEmail() << "," << p.getIdPlano();
+                    << p.getEmail() << "," << p.getIdPlano();
             for (int idAula : p.getAulasInscritas()) {
                 arquivo << "," << idAula;
             }
@@ -136,57 +69,36 @@ void DataManager::salvarDados(
         }
         arquivo.close();
     } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PRATICANTES << std::endl;
+        cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_PRATICANTES << endl;
     }
 
-    // 4. Salvar Aulas (Polimorfismo)
-    arquivo.open(ARQUIVO_AULAS);
+    // 4) Aulas (polimórfico)
+    arquivo.open(ARQUIVO_AULAS, std::ios::trunc);
     if (arquivo.is_open()) {
-        for (const Aula* aula : aulas) {
-            arquivo << aula->getTipo() << "," << aula->getId() << ","
-                      << aula->getHorario() << "," << aula->getLimiteAlunos() << ","
-                      << aula->getIdInstrutor();
+        for (const Aula* a : aulas) {
+            // Formato: id,tipo,horario,idInstrutor,limiteAlunos[,extra][,idsPraticantes...]
+            arquivo << a->getId() << "," << a->getTipo() << ","
+                    << a->getHorario() << "," << a->getIdInstrutor() << ","
+                    << a->getLimiteAlunos();
 
-            if (aula->getTipo() == "HotYoga") {
-                const HotYoga* hy = dynamic_cast<const HotYoga*>(aula);
-                if (hy) arquivo << "," << hy->getTemperatura();
-            } else if (aula->getTipo() == "YogaPets") {
-                const YogaPets* yp = dynamic_cast<const YogaPets*>(aula);
-                if (yp) arquivo << "," << yp->getTipoPet();
+            if (auto hot = dynamic_cast<const HotYoga*>(a)) {
+                arquivo << "," << hot->getTemperatura();
+            } else if (auto pets = dynamic_cast<const YogaPets*>(a)) {
+                arquivo << "," << pets->getTipoPet();
             }
 
-            for (int idPraticante : aula->getIdsPraticantesInscritos()) {
-                arquivo << "," << idPraticante;
+            for (int idP : a->getIdsPraticantesInscritos()) {
+                arquivo << "," << idP;
             }
             arquivo << "\n";
         }
         arquivo.close();
     } else {
-        std::cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_AULAS << std::endl;
+        cerr << "ERRO: Nao foi possivel salvar " << ARQUIVO_AULAS << endl;
     }
-    // --- FIM DA CÓPIA do seu salvarDados() ---
+
+    cout << "Dados salvos." << endl;
 }
-
-
-// --- FUNÇÕES FINDER (COPIADAS) ---
-// O DataManager precisa delas para o carregarDados funcionar.
-// Elas são privadas para esta classe.
-namespace { // <-- Truque para criar funções "privadas" para este arquivo
-    Praticante* findPraticanteById(std::vector<Praticante>& praticantes, int id) {
-        for (auto& p : praticantes) {
-            if (p.getId() == id) return &p;
-        }
-        return nullptr;
-    }
-
-    Instrutor* findInstrutorById(std::vector<Instrutor>& instrutores, int id) {
-        for (auto& i : instrutores) {
-            if (i.getId() == id) return &i;
-        }
-        return nullptr;
-    }
-} // Fim do namespace anônimo
-
 
 void DataManager::carregarDados(
     std::vector<Plano>& planos,
@@ -197,124 +109,157 @@ void DataManager::carregarDados(
     int& proximoIdAula,
     int& proximoIdPlano)
 {
-    // --- INÍCIO DA CÓPIA do seu carregarDados() ---
     std::ifstream arquivo;
     std::string linha;
+
+    int maxPlanoId = 0;
+    int maxPessoaId = 0; // compartilha para instrutor/praticante
+    int maxAulaId  = 0;
+
     std::cout << "Carregando dados dos arquivos .dat..." << std::endl;
 
-    // --- 1. Carregar Planos ---
-    int maxPlanoId = 0;
+    // 1) Planos
     arquivo.open(ARQUIVO_PLANOS);
     if (arquivo.is_open()) {
         while (std::getline(arquivo, linha)) {
             std::stringstream ss(linha);
             std::string idStr, nome, precoStr;
-            std::getline(ss, idStr, ',');
-            std::getline(ss, nome, ',');
-            std::getline(ss, precoStr, '\n');
+            if (!std::getline(ss, idStr, ',')) continue;
+            if (!std::getline(ss, nome, ',')) continue;
+            if (!std::getline(ss, precoStr, ',')) continue;
+
             try {
                 int id = std::stoi(idStr);
                 double preco = std::stod(precoStr);
                 planos.emplace_back(id, nome, preco);
                 maxPlanoId = std::max(maxPlanoId, id);
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de plano: " << linha << std::endl;
+            } catch (...) {
+                std::cerr << "Erro ao ler plano: " << linha << std::endl;
             }
         }
         arquivo.close();
-        // ATUALIZA O ID PASSADO POR REFERÊNCIA
-        if (maxPlanoId >= proximoIdPlano) {
-             proximoIdPlano = maxPlanoId + 1;
-        }
-        std::cout << "Carregados " << planos.size() << " planos." << std::endl;
     }
 
-    // --- 2. Carregar Instrutores ---
-    int maxPessoaId = 0;
+    // 2) Instrutores
     arquivo.open(ARQUIVO_INSTRUTORES);
     if (arquivo.is_open()) {
         while (std::getline(arquivo, linha)) {
-            // ... (lógica de leitura do instrutor) ...
-             try {
+            std::stringstream ss(linha);
+            std::string idStr, nome, email, especialidade;
+            if (!std::getline(ss, idStr, ',')) continue;
+            if (!std::getline(ss, nome, ',')) continue;
+            if (!std::getline(ss, email, ',')) continue;
+            if (!std::getline(ss, especialidade, ',')) continue;
+
+            try {
                 int id = std::stoi(idStr);
                 instrutores.emplace_back(id, nome, email, especialidade);
                 maxPessoaId = std::max(maxPessoaId, id);
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de instrutor: " << linha << std::endl;
+            } catch (...) {
+                std::cerr << "Erro ao ler instrutor: " << linha << std::endl;
             }
         }
         arquivo.close();
-        std::cout << "Carregados " << instrutores.size() << " instrutores." << std::endl;
     }
 
-    // --- 3. Carregar Praticantes ---
+    // 3) Praticantes
     arquivo.open(ARQUIVO_PRATICANTES);
     if (arquivo.is_open()) {
         while (std::getline(arquivo, linha)) {
-            // ... (lógica de leitura do praticante) ...
+            std::stringstream ss(linha);
+            std::string idStr, nome, email, idPlanoStr;
+            if (!std::getline(ss, idStr, ',')) continue;
+            if (!std::getline(ss, nome, ',')) continue;
+            if (!std::getline(ss, email, ',')) continue;
+            if (!std::getline(ss, idPlanoStr, ',')) continue;
+
             try {
                 int id = std::stoi(idStr);
                 int idPlano = std::stoi(idPlanoStr);
                 praticantes.emplace_back(id, nome, email, idPlano);
                 maxPessoaId = std::max(maxPessoaId, id);
 
-                // USA A FUNÇÃO FINDER LOCAL (do namespace anônimo)
+                // IDs de aulas (opcionais)
                 Praticante* p = findPraticanteById(praticantes, id);
+                std::string idAulaStr;
                 while (std::getline(ss, idAulaStr, ',')) {
-                    p->inscreverEmAula(std::stoi(idAulaStr));
+                    try { p->inscreverEmAula(std::stoi(idAulaStr)); } catch (...) {}
                 }
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de praticante: " << linha << std::endl;
+            } catch (...) {
+                std::cerr << "Erro ao ler praticante: " << linha << std::endl;
             }
         }
         arquivo.close();
-        std::cout << "Carregados " << praticantes.size() << " praticantes." << std::endl;
-    }
-    // ATUALIZA O ID PESSOA PASSADO POR REFERÊNCIA
-    if (maxPessoaId >= proximoIdPessoa) {
-        proximoIdPessoa = maxPessoaId + 1;
     }
 
-    // --- 4. Carregar Aulas (DEVE SER O ÚLTIMO) ---
-    int maxAulaId = 0;
+    // 4) Aulas
     arquivo.open(ARQUIVO_AULAS);
     if (arquivo.is_open()) {
         while (std::getline(arquivo, linha)) {
-            // ... (lógica de leitura da aula) ...
+            std::stringstream ss(linha);
+            std::string idStr, tipo, horario, idInstrutorStr, limiteStr;
+            if (!std::getline(ss, idStr, ',')) continue;
+            if (!std::getline(ss, tipo, ',')) continue;
+            if (!std::getline(ss, horario, ',')) continue;
+            if (!std::getline(ss, idInstrutorStr, ',')) continue;
+            if (!std::getline(ss, limiteStr, ',')) continue;
+
             try {
                 int id = std::stoi(idStr);
-                // ...
                 int idInstrutor = std::stoi(idInstrutorStr);
+                int limite = std::stoi(limiteStr);
 
-                // USA O FINDER LOCAL
-                Instrutor* instrutor = findInstrutorById(instrutores, idInstrutor);
-                if (instrutor == nullptr) {
-                    std::cerr << "Instrutor ID " << idInstrutor << " nao encontrado. Pulando aula " << id << ".\n";
+                Instrutor* instr = findInstrutorById(instrutores, idInstrutor);
+                if (!instr) {
+                    std::cerr << "Instrutor " << idInstrutor << " nao encontrado; aula " << id << " ignorada.\n";
                     continue;
                 }
 
-                Aula* novaAula = nullptr;
-                // ... (lógica do switch-case para criar HotYoga, YogaPets, YogaFlow) ...
-                // ...
+                Aula* nova = nullptr;
 
-                while (std::getline(ss, idPraticanteStr, ',')) {
-                    novaAula->inscreverPraticante(std::stoi(idPraticanteStr));
+                if (tipo == "HotYoga") {
+                    std::string tempStr;
+                    if (!std::getline(ss, tempStr, ',')) tempStr = "40";
+                    int temp = 40;
+                    try { temp = std::stoi(tempStr); } catch (...) {}
+                    nova = new HotYoga(id, horario, idInstrutor, limite, temp);
+                } else if (tipo == "YogaPets") {
+                    std::string tipoPet;
+                    if (!std::getline(ss, tipoPet, ',')) tipoPet = "Pets";
+                    nova = new YogaPets(id, horario, idInstrutor, limite, tipoPet);
+                } else if (tipo == "YogaFlow") {
+                    nova = new YogaFlow(id, horario, idInstrutor, limite);
+                } else {
+                    std::cerr << "Tipo de aula desconhecido: " << tipo << ". Ignorando id " << id << ".\n";
+                    continue;
                 }
 
-                aulas.push_back(novaAula);
-                instrutor->adicionarAula(id);
-                maxAulaId = std::max(maxAulaId, id);
+                // Inscrever participantes remanescentes da linha
+                std::string idPraticanteStr;
+                while (std::getline(ss, idPraticanteStr, ',')) {
+                    try {
+                        int idP = std::stoi(idPraticanteStr);
+                        nova->inscreverPraticante(idP);
+                        if (auto p = findPraticanteById(praticantes, idP)) {
+                            p->inscreverEmAula(id);
+                        }
+                    } catch (...) {}
+                }
 
-            } catch (const std::exception& e) {
-                std::cerr << "Erro ao ler linha de aula: " << linha << " (" << e.what() << ")" << std::endl;
+                aulas.push_back(nova);
+                instr->adicionarAula(id);
+                maxAulaId = std::max(maxAulaId, id);
+            } catch (...) {
+                std::cerr << "Erro ao ler aula: " << linha << std::endl;
             }
         }
         arquivo.close();
-        // ATUALIZA O ID AULA PASSADO POR REFERÊNCIA
-        if (maxAulaId >= proximoIdAula) {
-            proximoIdAula = maxAulaId + 1;
-        }
-        std::cout << "Carregadas " << aulas.size() << " aulas." << std::endl;
     }
-    
+
+    // Ajuste dos próximos IDs (se necessário)
+    if (maxPlanoId >= proximoIdPlano)  proximoIdPlano  = maxPlanoId + 1;
+    if (maxPessoaId >= proximoIdPessoa) proximoIdPessoa = maxPessoaId + 1;
+    if (maxAulaId  >= proximoIdAula)   proximoIdAula   = maxAulaId + 1;
+
+    std::cout << "Carregamento concluido." << std::endl;
 }

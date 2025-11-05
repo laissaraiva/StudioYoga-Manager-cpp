@@ -4,29 +4,34 @@
 #include <vector>
 #include <string>
 #include <limits>
+using namespace std;
+
 #include "models/Pessoa.h"
 #include "models/Praticante.h"
 #include "models/Instrutor.h"
 #include "models/Plano.h"
-#include "models/Aula.h" // A Classe Mãe Abstrata
+#include "models/Aula.h"
+#include "models/HotYoga.h"
+#include "models/YogaPets.h"
+#include "models/YogaFlow.h"
 
 /**
  * @brief Classe principal que gerencia a UI (menu) e os dados em memória.
  */
 class StudioManager {
 private:
-    // --- Armazenamento de Dados (em memória) ---
-    std::vector<Aula*> aulas;
-    std::vector<Instrutor> instrutores;
-    std::vector<Praticante> praticantes;
-    std::vector<Plano> planos;
+    // Armazenamento de Dados (em memória)
+    vector<Aula*> aulas;
+    vector<Instrutor> instrutores;
+    vector<Praticante> praticantes;
+    vector<Plano> planos;
 
-    // --- Contadores de ID ---
+    // Contadores de ID
     int proximoIdPessoa;
     int proximoIdAula;
     int proximoIdPlano;
 
-    // --- Métodos Auxiliares (privados) ---
+    // Métodos Auxiliares (privados)
     void limparBufferEntrada();
     int selecionarTipoAulaMenu(); 
 
@@ -36,7 +41,7 @@ private:
     Aula* findAulaById(int id);
     Plano* findPlanoById(int id);
 
-    // --- Métodos de Lógica do Menu (privados) ---
+    // Métodos de Lógica do Menu (privados)
     // (C)reate
     void cadastrarPraticante();
     void cadastrarInstrutor();
@@ -49,21 +54,25 @@ private:
     void listarInstrutores();
     void listarPlanos();
     void listarAulas(); 
-    void gerarRelatorioHTML(); // (Nosso "front" de consulta)
 
-    // --- NOVOS MÉTODOS PARA CRUD COMPLETO ---
+    // NOVOS MÉTODOS PARA CRUD COMPLETO
     // (U)pdate
     void atualizarPraticante();
     // (D)elete
     void removerPraticante();
-    // --- FIM DAS ADIÇÕES ---
+    // FIM DAS ADIÇÕES
+
+    // Exibe sempre o menu principal completo (1 a 12 e 0)
+    void imprimirMenuPrincipal() const;
+
+    void gerarRelatorioHTML(); // (Nosso "front" de consulta)
 
 public:
-    // --- Construtor e Destrutor ---
+    // Construtor e Destrutor
     StudioManager();
     ~StudioManager(); // Destrutor para limpar os ponteiros de Aula*
 
-    // --- Ponto de Entrada do Menu ---
+    // Ponto de Entrada do Menu
     void run(); 
 };
 

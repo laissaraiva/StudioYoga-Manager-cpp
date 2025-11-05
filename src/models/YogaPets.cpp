@@ -1,19 +1,17 @@
 #include "models/YogaPets.h"
 #include <iostream>
+using namespace std;
 
 YogaPets::YogaPets(int id, const std::string& horario, int idInstrutor, int limiteAlunos, const std::string& tipoPet)
-    : Aula(id, horario, idInstrutor, limiteAlunos), // <--- Chama o construtor da Mãe
+    : Aula(id, horario, idInstrutor, limiteAlunos), // Chama o construtor da Mãe
       tipoPetPermitido(tipoPet) {
 }
 
-// --- ATUALIZADO (renomeado) ---
 std::string YogaPets::getTipoPet() const {
     return tipoPetPermitido;
 }
 
-// --- ATUALIZADO (renomeado e valor corrigido) ---
 std::string YogaPets::getTipo() const {
-    // Deve retornar a string exata usada no StudioManager
     return "YogaPets";
 }
 
@@ -22,5 +20,5 @@ void YogaPets::exibirDetalhes() const {
     Aula::exibirDetalhes();
 
     // 2. Adiciona a info específica
-    std::cout << "  Pets Permitidos: " << tipoPetPermitido << std::endl;
+    cout << "  Pets Permitidos: " << tipoPetPermitido << endl;
 }

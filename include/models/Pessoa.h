@@ -3,27 +3,25 @@
 
 #include <string>
 #include <iostream>
+using namespace std;
 
 class Pessoa {
 protected:
     int id;
-    std::string nome;
-    std::string email;
+    string nome;
+    string email;
 
 public:
-    Pessoa(int id, const std::string& nome, const std::string& email);
-    virtual ~Pessoa(); // Destrutor virtual para herança
+    Pessoa(int id, const string& nome, const string& email);
+    virtual ~Pessoa();
 
-    // Getters comuns
     int getId() const;
-    std::string getNome() const;
-    std::string getEmail() const;
+    string getNome() const;
+    string getEmail() const;
 
-    // Setters (exemplo)
-    void setNome(const std::string& novoNome);
-    void setEmail(const std::string& novoEmail);
+    void setNome(const string& novoNome);
+    void setEmail(const string& novoEmail);
 
-    // Método virtual puro -> torna Pessoa uma classe Abstrata
     virtual void exibirDetalhes() const = 0;
 };
 

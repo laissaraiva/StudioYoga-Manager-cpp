@@ -19,11 +19,11 @@ public:
 
     // Lógica de Negócio
     void inscreverEmAula(int idAula);
+    // Exposição de leitura das aulas inscritas (para persistência)
+    const std::vector<int>& getAulasInscritas() const { return idsAulasInscrito; }
     
     // Método de exibição (polimorfismo)
     void exibirDetalhes() const override;
-
-    // --- NOVOS MÉTODOS (SETTERS) PARA O "UPDATE" ---
     
     // Define um novo nome (herdado de Pessoa)
     void setNome(const std::string& novoNome) {

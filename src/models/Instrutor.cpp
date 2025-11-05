@@ -1,7 +1,8 @@
-#include "models/Instrutor.h" // <--- Inclui o header
+#include "models/Instrutor.h"
+using namespace std;
 
 Instrutor::Instrutor(int id, const std::string& nome, const std::string& email, const std::string& especialidade)
-    : Pessoa(id, nome, email), // <--- Chama o construtor da Mãe
+    : Pessoa(id, nome, email), // Chama o construtor da Mãe
       especialidade(especialidade) {}
 
 std::string Instrutor::getEspecialidade() const {
@@ -13,17 +14,17 @@ void Instrutor::adicionarAula(int idAula) {
 }
 
 void Instrutor::exibirDetalhes() const {
-    std::cout << "--- Instrutor (ID: " << id << ") ---" << std::endl;
-    std::cout << "  Nome: " << nome << std::endl;
-    std::cout << "  Email: " << email << std::endl;
-    std::cout << "  Especialidade: " << especialidade << std::endl;
-    std::cout << "  Aulas Ministradas (IDs): ";
+    cout << "--- Instrutor (ID: " << id << ") ---" << endl;
+    cout << "  Nome: " << nome << endl;
+    cout << "  Email: " << email << endl;
+    cout << "  Especialidade: " << especialidade << endl;
+    cout << "  Aulas Ministradas (IDs): ";
     if (idsAulasMinistradas.empty()) {
-        std::cout << "Nenhuma";
+        cout << "Nenhuma";
     } else {
         for(int id : idsAulasMinistradas) {
-            std::cout << id << " ";
+            cout << id << " ";
         }
     }
-    std::cout << "\n" << std::endl;
+    cout << "\n" << endl;
 }
