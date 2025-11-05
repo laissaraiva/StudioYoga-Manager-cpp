@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,14 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
+
 <body>
 
     <nav class="golden-navbar">
         <div class="container">
             <a href="#abstract">Abstract</a>
             <a href="#applications">Applications</a>
-            <a href="#results">Resultados</a>
-            <a href="#full-video">Full Video</a>
+            <a href="#results">Arquitetura do Sistema</a>
+            <a href="#full-video">Vídeo</a>
         </div>
     </nav>
 
@@ -39,36 +41,38 @@
     <section id="abstract">
         <div class="container">
             <h2>Abstract</h2>
-            <p>Este projeto  é uma solução, desenvolvida em C++, projetada para centralizar e simplificar a administração completa de um estúdio de yoga. O sistema oferece uma interface de console (CLI) para gerenciar de forma intuitiva todas as entidades e operações do dia a dia, desde o cadastro de alunos até o agendamento de aulas.
 
-O pilar do desenvolvimento foi a Programação Orientada a Objetos (POO). Conceitos foram aplicados para garantir a integridade do códido, senso eles: <br>
+            <p>Este projeto é uma solução, desenvolvida em C++, projetada para centralizar e simplificar a administração completa de um estúdio de yoga. O sistema oferece uma interface de console (CLI) para gerenciar de forma intuitiva todas as entidades e operações do dia a dia, desde o cadastro de alunos até o agendamento de aulas.</p>
 
-Herança: Utilizada para criar hierarquias de classes lógicas, como a classe base Pessoa que define atributos comuns para Praticante e Instrutor.
+            <p>O pilar do desenvolvimento foi a Programação Orientada a Objetos (POO). Conceitos avançados foram aplicados para garantir um código limpo, modular e extensível:</p>
+            <ul>
+                <li><strong>Herança:</strong> Utilizada para criar hierarquias de classes lógicas, como a classe base <code>Pessoa</code> que define atributos comuns para <code>Praticante</code> e <code>Instrutor</code>.</li>
+                <li><strong>Polimorfismo:</strong> Implementado de forma crucial no sistema de aulas, onde a classe base abstrata <code>Aula</code> permite ao sistema gerenciar diferentes tipos de aulas (como <code>HotYoga</code> e <code>YogaPets</code>) de maneira uniforme.</li>
+            </ul>
 
-<br>Polimorfismo: Implementado de forma crucial no sistema de aulas, onde a classe base abstrata Aula permite ao sistema gerenciar diferentes tipos de aulas (como HotYoga, YogaPets e Yoga Tradicional) de maneira uniforme.
+            <p>Adotando práticas de <strong>Clean Architecture</strong>, o projeto foi rigorosamente modularizado em camadas de responsabilidade distintas, refletidas na estrutura de pastas:</p>
 
-Adotando práticas de "Clean Architecture", o projeto foi  modularizado em camadas de responsabilidade distintas, refletidas na estrutura de pastas:
+            <ul>
+                <li><code>models/</code>: Definição das entidades centrais (as classes <code>Plano</code>, <code>Aula</code>, <code>Praticante</code>, etc.).</li>
+                <li><code>services/</code>: O "cérebro" da aplicação (<code>StudioManager</code>), controlando a lógica de negócio e o fluxo do menu.</li>
+                <li><code>data/</code>: A camada de persistência. O <code>DataManager</code> é um serviço estático responsável por salvar (serializar) e carregar (desserializar) os dados dos vetores em arquivos <code>.dat</code>, garantindo que as informações sobrevivam entre as execuções.</li>
+                <li><code>utils/</code>: Uma camada de utilidades de UI, como o <code>Color.h</code>, para o polimento da interface de console (TUI).</li>
+            </ul>
 
-<br>models/: Contém as definições das entidades centrais (as classes Plano, Aula, Praticante, etc.).
+            <p>O resultado é um sistema de gerenciamento funcional, que não apenas implementa um <strong>CRUD (Create, Read, Update, Delete) completo</strong> para as entidades do estúdio, mas também garante a <strong>persistência de dados</strong>. O sistema implementa duas formas de "Front-End": uma Interface de Usuário de Texto (TUI) profissional, com cores e limpeza de tela, e um "Front-End de Consulta", que gera um relatório <code>.html</code> dos dados atuais. Um <strong>"Modo Demo"</strong> também foi implementado: se o programa iniciar sem arquivos <code>.dat</code>, ele cria dados fictícios para facilitar a demonstração.</p>
 
-<br>services/: O "cérebro" da aplicação. O StudioManager reside aqui, controlando toda a lógica de negócio, o fluxo do menu e gerenciando os dados em memória.
-
-<br>data/: A camada de persistência. O DataManager é um serviço estático responsável por salvar (serializar) e carregar (desserializar) os dados dos vetores em arquivos .txt, garantindo que as informações sobrevivam entre as execuções.
-
-<br>validator/: Uma camada de serviço utilitário que garante a integridade dos dados de entrada (como nomes, emails e preços) antes que eles sejam processados pela camada de serviço.
-
-O resultado é um sistema de gerenciamento funcional, que não apenas implementa um CRUD (Create, Read, Update, Delete) completo para as entidades do estúdio, mas também garante a persistência de dados e a validação de entradas. O projeto utiliza CMake para um processo de compilação (build) moderno e multiplataforma, estando pronto para ser compilado e executado.</p>
+            <p>O projeto utiliza <code>CMake</code> para um processo de compilação (build) moderno e multiplataforma, estando pronto para ser compilado e executado.</p>
         </div>
     </section>
-    
+
     <section id="applications">
         <div class="container">
             <h2>Applications (Como usar o programa)</h2>
             <p>Este projeto <strong>não é um site</strong>, mas sim um <strong>programa em C++</strong> que roda no seu terminal. Para usá-lo, você precisa baixar o código-fonte e compilá-lo usando <strong>CMake</strong> (o comando <code>g++</code> simples não funcionará devido à estrutura de pastas).</p>
-            
+
             <p><strong>1. Clone o repositório:</strong></p>
             <pre><code>git clone https://github.com/laissaraiva/StudioYoga-Manager-cpp.git</code></pre>
-            
+
             <p><strong>2. Entre na pasta e prepare a compilação (Build):</strong></p>
             <pre><code>cd StudioYoga-Manager-cpp
 mkdir build
@@ -90,9 +94,9 @@ cmake ..</code></pre>
             <h2>Arquitetura do Sistema</h2>
             <pre><code>StudioYoga-Manager-cpp/
 |
-+--- include/               # 1. Cabeçalhos (.h) - As "Camadas"
++--- include/              # 1. Cabeçalhos (.h) - As "Camadas"
 |    |
-|    +--- models/           # --- Camada de Modelos (O que é?)
+|    +--- models/          # --- Camada de Modelos (O que é?)
 |    |    |--- Pessoa.h
 |    |    |--- Praticante.h
 |    |    |--- Instrutor.h
@@ -101,19 +105,19 @@ cmake ..</code></pre>
 |    |    |--- HotYoga.h
 |    |    \--- YogaPets.h
 |    |
-|    +--- services/          # --- Camada de Serviço (O Cérebro)
+|    +--- services/         # --- Camada de Serviço (O Cérebro)
 |    |    \--- StudioManager.h
 |    |
-|    +--- data/              # --- Camada de Dados (O Banco de Dados)
+|    +--- data/             # --- Camada de Dados (O Banco de Dados)
 |    |    \--- DataManager.h
 |    |
-|    +--- validator/         # --- Camada de Validação
+|    +--- validator/        # --- Camada de Validação
 |    |    \--- Validator.h
 |    |
-|    \--- utils/             # --- Utilitários (O "Front-end" TUI)
+|    \--- utils/            # --- Utilitários (O "Front-end" TUI)
 |         \--- Color.h
 |
-+--- src/                   # 2. Implementações (.cpp)
++--- src/                  # 2. Implementações (.cpp)
 |    |
 |    +--- models/
 |    |    |--- Pessoa.cpp
@@ -129,36 +133,36 @@ cmake ..</code></pre>
 |    \--- validator/
 |         \--- Validator.cpp
 |
-+--- build/                 # 3. Arquivos Gerados (Onde o programa roda)
-|    |--- StudioYogaManager.exe  # <<< PROGRAMA FINAL
-|    |--- praticantes.dat        # <<< BANCO DE DADOS
++--- build/                # 3. Arquivos Gerados (Onde o programa roda)
+|    |--- StudioYogaManager.exe   # <<< PROGRAMA FINAL
+|    |--- praticantes.dat       # <<< BANCO DE DADOS
 |    |--- instrutores.dat
 |    |--- planos.dat
-|    \--- relatorio.html         # <<< RELATÓRIO HTML
+|    \--- relatorio.html        # <<< RELATÓRIO HTML
 |
-+--- docs/                    # 4. Documentação
++--- docs/                 # 4. Documentação
 |    |--- index.html
 |    \--- style.css
 |
-|--- CMakeLists.txt           # A "Receita" do Projeto
+|--- CMakeLists.txt          # A "Receita" do Projeto
 |
-|--- main.cpp                 # Ponto de entrada (só chama o StudioManager)
+|--- main.cpp                # Ponto de entrada (só chama o StudioManager)
 |
-\--- README.md                # O "Abstract" do projeto</code></pre>
-            </div>
+\--- README.md               # O "Abstract" do projeto</code></pre>
+        </div>
     </section>
 
     <section id="full-video">
         <div class="container">
             <h2>Vídeo de Funcionamento do Sistema</h2>
             <iframe width="560" height="315"
-                    src="https://www.youtube.com/embed/skoL_E_E2U8"
-                    title="Video EDOO - Grupo 4 (Studio Yoga Manager)"
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen>
+                src="https://www.youtube.com/embed/skoL_E_E2U8"
+                title="Video EDOO - Grupo 4 (Studio Yoga Manager)"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
             </iframe>
-            </div>
+        </div>
     </section>
 
 </body>
