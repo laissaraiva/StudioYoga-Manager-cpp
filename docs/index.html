@@ -87,8 +87,64 @@ cmake ..</code></pre>
 
     <section id="results">
         <div class="container">
-            <h2>Resultados</h2>
-            <p>Aqui você pode descrever os resultados alcançados pelo sistema, suas funcionalidades principais e talvez alguns prints das telas do console.</p>
+            <h2>Arquitetura do Sistema</h2>
+            <pre><code>StudioYoga-Manager-cpp/
+|
++--- include/               # 1. Cabeçalhos (.h) - As "Camadas"
+|    |
+|    +--- models/           # --- Camada de Modelos (O que é?)
+|    |    |--- Pessoa.h
+|    |    |--- Praticante.h
+|    |    |--- Instrutor.h
+|    |    |--- Plano.h
+|    |    |--- Aula.h
+|    |    |--- HotYoga.h
+|    |    \--- YogaPets.h
+|    |
+|    +--- services/          # --- Camada de Serviço (O Cérebro)
+|    |    \--- StudioManager.h
+|    |
+|    +--- data/              # --- Camada de Dados (O Banco de Dados)
+|    |    \--- DataManager.h
+|    |
+|    +--- validator/         # --- Camada de Validação
+|    |    \--- Validator.h
+|    |
+|    \--- utils/             # --- Utilitários (O "Front-end" TUI)
+|         \--- Color.h
+|
++--- src/                   # 2. Implementações (.cpp)
+|    |
+|    +--- models/
+|    |    |--- Pessoa.cpp
+|    |    |--- Praticante.cpp
+|    |    |--- ... (etc.)
+|    |
+|    +--- services/
+|    |    \--- StudioManager.cpp
+|    |
+|    +--- data/
+|    |    \--- DataManager.cpp
+|    |
+|    \--- validator/
+|         \--- Validator.cpp
+|
++--- build/                 # 3. Arquivos Gerados (Onde o programa roda)
+|    |--- StudioYogaManager.exe  # <<< PROGRAMA FINAL
+|    |--- praticantes.dat        # <<< BANCO DE DADOS
+|    |--- instrutores.dat
+|    |--- planos.dat
+|    \--- relatorio.html         # <<< RELATÓRIO HTML
+|
++--- docs/                    # 4. Documentação
+|    |--- index.html
+|    \--- style.css
+|
+|--- CMakeLists.txt           # A "Receita" do Projeto
+|
+|--- main.cpp                 # Ponto de entrada (só chama o StudioManager)
+|
+\--- README.md                # O "Abstract" do projeto</code></pre>
             </div>
     </section>
 
